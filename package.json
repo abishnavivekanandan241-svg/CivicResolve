@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
+    "@libsql/client": "^0.18.0",
+    "@prisma/adapter-libsql": "^7.10.1",
     "@prisma/client": "^6.19.3",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",

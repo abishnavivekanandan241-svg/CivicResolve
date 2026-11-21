@@ -104,11 +104,19 @@ export async function GET(request: Request) {
 
     const lang = searchParams.get('lang') || 'en';
 
-    const enriched = issues.map((issue) => ({
-      ...issue,
-      hasUpvoted: user ? (issue as any).userUpvotes?.length > 0 : false,
-      isSlaBreached: issue.status !== 'RESOLVED' && issue.slaDueAt ? new Date(issue.slaDueAt) < new Date() : false,
-    }));
+    const enriched = issues.map((issue) => {
+      // In list payloads, replace heavy data URLs with lightweight image endpoints
+      let displayImageUrl = issue.imageUrl;
+      if (displayImageUrl && displayImageUrl.startsWith('data:image/')) {
+        displayImageUrl = `/api/issues/${issue.id}/image`;
+      }
+      return {
+        ...issue,
+        imageUrl: displayImageUrl,
+        hasUpvoted: user ? (issue as any).userUpvotes?.length > 0 : false,
+        isSlaBreached: issue.status !== 'RESOLVED' && issue.slaDueAt ? new Date(issue.slaDueAt) < new Date() : false,
+      };
+    });
 
     const translatedIssues = await batchTranslateIssues(enriched, lang);
 
@@ -187,21 +195,25 @@ export async function POST(request: Request) {
       }
     }
 
-    // Save image to /public/uploads if provided
+    // Image storage: in production, never write to local disk (ephemeral filesystem).
+    // Store validated & compressed base64 directly in database, or default to generic seed image.
     let imageUrl = '/seed/road-damage.svg';
     if (imageBase64) {
-      try {
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
+      if (process.env.NODE_ENV !== 'production' && !process.env.TURSO_DATABASE_URL) {
+        try {
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          const fileName = `issue-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+          const filePath = path.join(uploadsDir, fileName);
+          const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+          imageUrl = `/uploads/${fileName}`;
+        } catch {
+          imageUrl = imageBase64;
         }
-        const fileName = `issue-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-        const filePath = path.join(uploadsDir, fileName);
-        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-        fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-        imageUrl = `/uploads/${fileName}`;
-      } catch (err) {
-        console.warn('Could not save uploaded image to disk, falling back to data URL:', err);
+      } else {
         imageUrl = imageBase64;
       }
     }

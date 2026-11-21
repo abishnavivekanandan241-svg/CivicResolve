@@ -46,19 +46,23 @@ export async function POST(
       category: issue.category,
     });
 
-    // Save image to public uploads
+    // Save resolution image: in production, never write to local disk
     let resolutionImageUrl = '/seed/pothole-after.svg';
-    try {
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+    if (process.env.NODE_ENV !== 'production' && !process.env.TURSO_DATABASE_URL) {
+      try {
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const fileName = `resolution-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        const filePath = path.join(uploadsDir, fileName);
+        const base64Data = afterImageBase64.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+        resolutionImageUrl = `/uploads/${fileName}`;
+      } catch {
+        resolutionImageUrl = afterImageBase64;
       }
-      const fileName = `resolution-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-      const filePath = path.join(uploadsDir, fileName);
-      const base64Data = afterImageBase64.replace(/^data:image\/\w+;base64,/, '');
-      fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-      resolutionImageUrl = `/uploads/${fileName}`;
-    } catch {
+    } else {
       resolutionImageUrl = afterImageBase64;
     }
 

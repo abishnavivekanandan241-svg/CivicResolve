@@ -28,6 +28,7 @@ import confetti from 'canvas-confetti';
 import { useI18n } from '@/lib/i18n';
 import { GeminiAnalysisResult, DuplicateCheckResult } from '@/lib/types';
 import { CATEGORIES } from '@/lib/gemini';
+import { validateAndCompressImage } from '@/lib/imageCompression';
 
 // Dynamically import Leaflet Map component with SSR disabled
 const LocationPickerMap = dynamic(
@@ -136,16 +137,22 @@ export default function ReportPage() {
     }
   };
 
-  // Image Upload Handler
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image Upload Handler with client-side compression (max 1280px, ~200KB) and 5MB validation
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageBase64(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await validateAndCompressImage(file, {
+        maxWidth: 1280,
+        maxHeight: 1280,
+        quality: 0.75,
+      });
+      setImageBase64(compressedDataUrl);
+    } catch (err: any) {
+      console.error('Image compression error:', err);
+      alert(err.message || 'Image upload failed. Please ensure the image is under 5MB.');
+    }
   };
 
   // Preset incident loader

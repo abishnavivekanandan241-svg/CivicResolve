@@ -29,6 +29,7 @@ import {
 import { IssueData, BacklogSummary } from '@/lib/types';
 import { DEPARTMENTS, CATEGORIES } from '@/lib/gemini';
 import { useI18n, SUPPORTED_LANGUAGES } from '@/lib/i18n';
+import { validateAndCompressImage } from '@/lib/imageCompression';
 
 const AdminOperationsMap = dynamic(
   () => import('@/components/Map/TransparencyHeatmap'),
@@ -121,15 +122,21 @@ export default function AdminPage() {
     setIsDrawerOpen(true);
   };
 
-  const handleResolutionPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResolutionPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAfterImageBase64(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await validateAndCompressImage(file, {
+        maxWidth: 1280,
+        maxHeight: 1280,
+        quality: 0.75,
+      });
+      setAfterImageBase64(compressedDataUrl);
+    } catch (err: any) {
+      console.error('Resolution photo compression failed:', err);
+      alert(err.message || 'Image upload failed. Please ensure the file is under 5MB.');
+    }
   };
 
   const handleRunAiVerification = async () => {
