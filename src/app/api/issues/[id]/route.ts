@@ -152,7 +152,7 @@ export async function PATCH(
 
     // Handle Status Transition
     let statusChanged = false;
-    let oldStatus = existing.status;
+    const oldStatus = existing.status;
     let newStatus = existing.status;
 
     if (payload.status && payload.status !== existing.status) {
