@@ -13,10 +13,10 @@ import {
   Moon,
   Sun,
   PlusCircle,
-  Sparkles,
   ChevronDown,
+  Building,
 } from 'lucide-react';
-import { useI18n, SUPPORTED_LANGUAGES, SupportedLanguage } from '@/lib/i18n';
+import { useI18n, SUPPORTED_LANGUAGES } from '@/lib/i18n';
 import { UserSession } from '@/lib/types';
 
 export function Navbar() {
@@ -89,46 +89,62 @@ export function Navbar() {
   const currentLangObj = SUPPORTED_LANGUAGES.find((l: any) => l.code === language) || SUPPORTED_LANGUAGES[0];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      {/* Top Government Classification Banner */}
+      <div className="bg-slate-900 text-slate-300 text-[11px] px-4 py-1 flex items-center justify-between border-b border-slate-800">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-white tracking-wide">Government of Tamil Nadu</span>
+            <span className="text-slate-500">|</span>
+            <span className="text-slate-400">Erode City Municipal Corporation</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-3 text-slate-400">
+            <span>Public Grievance Redressal System</span>
+            <span className="text-slate-600">•</span>
+            <span>Citizen Charter SLA Enabled</span>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-            <ShieldAlert className="w-5 h-5 text-white" />
+        {/* Brand Logo - Official Municipal Style */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-md bg-blue-700 dark:bg-blue-600 flex items-center justify-center text-white shadow-xs">
+            <Building className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
                 CivicResolve
               </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800 flex items-center gap-0.5">
-                <Sparkles className="w-2.5 h-2.5" /> Gemini
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                Official Portal
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium -mt-0.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
               Erode City Corporation
             </p>
           </div>
         </Link>
 
         {/* Main Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
           <Link
             href="/report"
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${pathname === '/report'
-                ? 'bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md transition-colors ${pathname === '/report'
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
-            <PlusCircle className="w-4 h-4 text-sky-600" />
+            <PlusCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
             <span>{t('reportIssueBtn')}</span>
           </Link>
 
           <Link
             href="/my-issues"
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${pathname === '/my-issues'
-                ? 'bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md transition-colors ${pathname === '/my-issues'
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
             <FileText className="w-4 h-4" />
@@ -137,9 +153,9 @@ export function Navbar() {
 
           <Link
             href="/transparency"
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${pathname === '/transparency'
-                ? 'bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md transition-colors ${pathname === '/transparency'
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
             <MapPin className="w-4 h-4" />
@@ -148,9 +164,9 @@ export function Navbar() {
 
           <Link
             href="/admin"
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${pathname.startsWith('/admin')
-                ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md transition-colors ${pathname.startsWith('/admin')
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -159,22 +175,22 @@ export function Navbar() {
         </nav>
 
         {/* Right Controls: Language, Role Switcher, Dark Mode */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2">
           {/* Indic Language Dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
               title="Change Interface Language"
             >
-              <Globe className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               <span>{currentLangObj.nativeName}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
             {isLangOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 z-50">
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg py-1 z-50">
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
                   Select Language
                 </div>
                 {SUPPORTED_LANGUAGES.map((lang: any) => (
@@ -184,9 +200,9 @@ export function Navbar() {
                       setLanguage(lang.code);
                       setIsLangOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition ${language === lang.code
-                        ? 'bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-300 font-semibold'
-                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition ${language === lang.code
+                        ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-semibold'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
                       }`}
                   >
                     <span>{lang.nativeName}</span>
@@ -197,37 +213,36 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Role Switcher Pill */}
+          {/* Role Switcher Pill - Enterprise Segmented Switch */}
           <button
             onClick={handleRoleToggle}
             disabled={isRoleSwitching}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${currentUser?.role === 'ADMIN'
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700 shadow-sm shadow-indigo-500/20'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-500/20'
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-semibold transition ${currentUser?.role === 'ADMIN'
+                ? 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-white'
+                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700'
               }`}
             title="Toggle between Citizen and Municipal Admin persona"
           >
-            <UserCheck className="w-3.5 h-3.5" />
+            <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>
               {isRoleSwitching
-                ? 'Switching...'
+                ? 'Updating...'
                 : currentUser?.role === 'ADMIN'
-                  ? 'Admin Role'
-                  : 'Citizen Role'}
+                  ? 'Official Console'
+                  : 'Citizen Mode'}
             </span>
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            className="p-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
             title="Toggle Dark / Light Theme"
           >
-            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
         </div>
       </div>
     </header>
   );
 }
-

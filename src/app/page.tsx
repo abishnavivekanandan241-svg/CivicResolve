@@ -5,19 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
-  ShieldAlert,
   ArrowRight,
-  Sparkles,
   Search,
   CheckCircle2,
   Clock,
-  TrendingUp,
   AlertTriangle,
   MapPin,
   ChevronRight,
-  Building2,
   Layers,
-  Zap,
+  Building,
+  FileCheck2,
+  ShieldCheck,
 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { IssueData } from '@/lib/types';
@@ -25,7 +23,7 @@ import { IssueData } from '@/lib/types';
 // Dynamically import Heatmap Map with SSR disabled
 const TransparencyHeatmap = dynamic(
   () => import('@/components/Map/TransparencyHeatmap'),
-  { ssr: false, loading: () => <div className="h-[400px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl" /> }
+  { ssr: false, loading: () => <div className="h-[400px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" /> }
 );
 
 export default function HomePage() {
@@ -61,70 +59,75 @@ export default function HomePage() {
   const resolvedShowcases = issues.filter((i) => i.status === 'RESOLVED' && i.resolutionImageUrl).slice(0, 3);
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pt-12 pb-16 border-b border-slate-200 dark:border-slate-800">
+    <div className="space-y-12 pb-16">
+      {/* Hero Section - Official Public Service Aesthetic */}
+      <section className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-6">
-            {/* Pill Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-sky-100/80 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-              <span>Next-Gen Urban Governance with Google Gemini 2.5 Flash</span>
+          <div className="max-w-3xl space-y-6">
+            {/* Classification Chip */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+              <span>Public Service Portal • Citizen Charter SLA Standards</span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-              Report Civic Issues in 30 Seconds.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-indigo-600">
-                Resolved with AI Precision.
-              </span>
+            <h1 className="text-3xl sm:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+              Municipal Grievance Redressal &amp; Infrastructure Services
             </h1>
 
             {/* Subtitle */}
-            <p className="text-sm sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Multimodal Gemini intelligence detects Indic languages, assesses public impact, routes to municipal departments with automated SLAs, and guarantees verified resolutions.
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+              Official digital system for Erode City Municipal Corporation. Lodge civic issues in any Indian language or voice dictation, track time-bound statutory SLAs, and verify field inspection records.
             </p>
 
-            {/* CTAs & Track-by-ID Search Bar */}
-            <div className="pt-2 max-w-xl mx-auto space-y-4">
+            {/* Track-by-ID Input & Direct Action Buttons */}
+            <div className="pt-2 space-y-4 max-w-xl">
               <form
                 onSubmit={handleTrackSubmit}
-                className="flex items-center p-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-sky-500/40 shadow-lg shadow-sky-500/10 focus-within:border-sky-500 transition"
+                className="flex items-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 transition"
               >
                 <div className="pl-3 text-slate-400">
-                  <Search className="w-5 h-5 text-sky-600" />
+                  <Search className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
                   value={trackingQuery}
                   onChange={(e) => setTrackingQuery(e.target.value)}
-                  placeholder={t('trackInputPlaceholder')}
-                  className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none uppercase font-mono tracking-wide"
+                  placeholder="Enter Grievance Tracking ID (e.g., CR-2026-00101)"
+                  className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-mono uppercase"
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm shadow-md transition"
+                  className="px-4 py-2 rounded bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs sm:text-sm transition"
                 >
-                  {t('trackAction')}
+                  Track Status
                 </button>
               </form>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href="/report"
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-sm font-bold shadow-lg shadow-sky-600/25 transition group"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-semibold transition shadow-xs"
                 >
-                  <span>{t('reportIssueBtn')}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <span>File a Grievance</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 <Link
                   href="/transparency"
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
                 >
-                  <MapPin className="w-4 h-4 text-sky-600" />
-                  <span>{t('transparencyMapBtn')}</span>
+                  <MapPin className="w-4 h-4 text-slate-500" />
+                  <span>Ward Scoreboard &amp; Map</span>
+                </Link>
+
+                <Link
+                  href="/my-issues"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                >
+                  <FileCheck2 className="w-4 h-4 text-slate-500" />
+                  <span>Public Grievance Ledger</span>
                 </Link>
               </div>
             </div>
@@ -132,77 +135,75 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live Operational KPIs Section */}
+      {/* Live Operational KPIs Section - Microsoft / Google Metric Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">{t('statsTotalReported')}</span>
-              <Layers className="w-4 h-4 text-sky-600" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider">{t('statsTotalReported')}</span>
+              <Layers className="w-4 h-4 text-slate-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
               {stats?.totalIssues ?? 40}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">Across 6 Corporation Wards</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">{t('statsResolutionRate')}</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider">{t('statsResolutionRate')}</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600">
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-700 dark:text-emerald-400 font-mono">
               {stats?.resolvedPercentage ?? 20}%
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">{stats?.resolvedCount ?? 8} verified resolutions</p>
+            <p className="text-[11px] text-slate-500 mt-1">{stats?.resolvedCount ?? 8} inspected &amp; certified</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">{t('statsAvgTime')}</span>
-              <Clock className="w-4 h-4 text-indigo-500" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider">{t('statsAvgTime')}</span>
+              <Clock className="w-4 h-4 text-slate-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {stats?.avgResolutionHours ?? 18} <span className="text-sm font-medium text-slate-400">{t('statsHours')}</span>
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
+              {stats?.avgResolutionHours ?? 18} <span className="text-xs font-normal text-slate-500">{t('statsHours')}</span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">From intake to verified fix</p>
+            <p className="text-[11px] text-slate-500 mt-1">Intake to field completion</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Active Urgent Work</span>
-              <AlertTriangle className="w-4 h-4 text-red-500" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Critical Priority</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-red-600">
+            <div className="text-2xl sm:text-3xl font-bold text-rose-700 dark:text-rose-400 font-mono">
               {stats?.criticalCount ?? 7}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">High public-risk dispatches</p>
+            <p className="text-[11px] text-slate-500 mt-1">High public-risk alerts</p>
           </div>
         </div>
       </section>
 
       {/* Mini Public Transparency Map Preview */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                  Live Grievance Activity — Erode City
-                </h2>
-              </div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                <span>Geospatial Incident Distribution — Erode City</span>
+              </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Real-time geotagged complaints color-coded by lifecycle stage.
+                Ward-level infrastructure grievances color-coded by lifecycle stage.
               </p>
             </div>
 
             <Link
               href="/transparency"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
             >
-              <span>Explore Full Transparency Map &amp; Ward Leaderboard</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>View Full Ward Scoreboard</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -211,46 +212,46 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Recently Resolved Gallery with Before/After */}
+      {/* Recently Resolved Gallery with Before/After Verification */}
       {resolvedShowcases.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
-                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span>Recently Resolved &amp; AI-Verified</span>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Verified Resolutions Record</span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Municipal crews verify resolution by submitting evidence photos analyzed by Gemini.
+                  Field inspections verified with photographic evidence by municipal audit teams.
                 </p>
               </div>
 
               <Link
                 href="/transparency"
-                className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                className="text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-0.5"
               >
-                <span>View All Resolved</span>
+                <span>View Full Registry</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {resolvedShowcases.map((issue) => (
                 <div
                   key={issue.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden flex flex-col hover:border-slate-300 dark:hover:border-slate-700 transition"
                 >
                   {/* Before / After Dual Image Container */}
-                  <div className="grid grid-cols-2 h-44 bg-slate-100 dark:bg-slate-800 relative">
+                  <div className="grid grid-cols-2 h-40 bg-slate-100 dark:bg-slate-800 relative">
                     <div className="relative border-r border-slate-200 dark:border-slate-700">
                       <img
                         src={issue.imageUrl || '/seed/road-damage.svg'}
                         alt="Before"
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-red-600/90 text-white text-[10px] font-bold">
-                        BEFORE
+                      <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[9px] font-semibold tracking-wider uppercase">
+                        Before
                       </span>
                     </div>
 
@@ -260,17 +261,17 @@ export default function HomePage() {
                         alt="After"
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-600/90 text-white text-[10px] font-bold">
-                        AFTER
+                      <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-700/90 text-white text-[9px] font-semibold tracking-wider uppercase">
+                        Resolved
                       </span>
                     </div>
 
-                    {/* AI Verified Ribbon */}
-                    <div className="absolute bottom-2 inset-x-2 bg-slate-900/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <CheckCircle2 className="w-3 h-3" /> AI Resolution Verified
+                    {/* Verified Certificate Bar */}
+                    <div className="absolute bottom-1.5 inset-x-1.5 bg-slate-900/90 text-white px-2 py-1 rounded text-[10px] font-medium flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-emerald-300">
+                        <CheckCircle2 className="w-3 h-3" /> Field Inspection Verified
                       </span>
-                      <span className="text-slate-300 font-mono">
+                      <span className="text-slate-400 font-mono">
                         {Math.round((issue.resolutionConfidence || 0.95) * 100)}% Match
                       </span>
                     </div>
@@ -279,27 +280,27 @@ export default function HomePage() {
                   {/* Content */}
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                        <span className="font-mono font-bold text-slate-600 dark:text-slate-300">{issue.trackingId}</span>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1 font-mono">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">{issue.trackingId}</span>
                         <span>{issue.ward}</span>
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-sky-600 transition">
+                      <h3 className="font-semibold text-sm text-slate-900 dark:text-white line-clamp-1">
                         {issue.title}
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mt-1">
                         {issue.resolutionNote || issue.description}
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">
+                      <span className="font-medium text-slate-600 dark:text-slate-400">
                         {issue.department}
                       </span>
                       <Link
                         href={`/issues/${issue.id}`}
-                        className="font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5"
+                        className="font-semibold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-0.5"
                       >
-                        <span>Audit Trail</span>
+                        <span>View Audit</span>
                         <ChevronRight className="w-3 h-3" />
                       </Link>
                     </div>

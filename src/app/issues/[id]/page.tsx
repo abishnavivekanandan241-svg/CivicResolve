@@ -4,29 +4,27 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ShieldAlert,
   ArrowLeft,
-  Building2,
+  Building,
   Clock,
   MapPin,
-  Sparkles,
   ThumbsUp,
   FileText,
   CheckCircle2,
   AlertTriangle,
   Layers,
   User,
-  Share2,
   Copy,
   Check,
-  Calendar,
+  Printer,
+  ShieldCheck,
 } from 'lucide-react';
 import { IssueData, PriorityFactor } from '@/lib/types';
 import dynamic from 'next/dynamic';
 
 const IssueDetailMap = dynamic(
   () => import('@/components/Map/LocationPickerMap'),
-  { ssr: false, loading: () => <div className="h-[220px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-[220px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" /> }
 );
 
 function IssueDetailContent() {
@@ -73,7 +71,6 @@ function IssueDetailContent() {
     if (!issue || isUpvoting) return;
     setIsUpvoting(true);
 
-    // Optimistic UI update
     const prevUpvoted = hasUpvoted;
     const prevCount = upvotes;
     setHasUpvoted(!prevUpvoted);
@@ -88,7 +85,6 @@ function IssueDetailContent() {
         setUpvotes(data.upvotes);
         setHasUpvoted(data.hasUpvoted);
       } else {
-        // Revert
         setHasUpvoted(prevUpvoted);
         setUpvotes(prevCount);
       }
@@ -124,9 +120,9 @@ function IssueDetailContent() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-10 h-10 border-4 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs text-slate-400 font-medium">Loading grievance tracking ledger...</p>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-3">
+        <div className="w-6 h-6 border-2 border-blue-700 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-slate-500 font-medium">Retrieving official municipal docket...</p>
       </div>
     );
   }
@@ -134,14 +130,14 @@ function IssueDetailContent() {
   if (error || !issue) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 text-red-600 flex items-center justify-center mx-auto">
-          <AlertTriangle className="w-6 h-6" />
+        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 flex items-center justify-center mx-auto">
+          <AlertTriangle className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Grievance Not Found</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Record Not Found</h2>
         <p className="text-xs text-slate-500">{error || 'Please check the Tracking ID and try again.'}</p>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-blue-700 text-white text-xs font-semibold"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Return Home</span>
@@ -150,7 +146,6 @@ function IssueDetailContent() {
     );
   }
 
-  // Parse priority factors
   let factors: PriorityFactor[] = [];
   try {
     if (issue.priorityFactors) {
@@ -162,40 +157,55 @@ function IssueDetailContent() {
   const isInProgress = issue.status === 'IN_PROGRESS';
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Back button and Tracking Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Back button and Official Tracking Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Grievances</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Grievance Ledger</span>
         </button>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Tracking ID chip */}
-          <span className="font-mono text-xs font-extrabold px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
+          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
             {issue.trackingId}
           </span>
 
           {/* Status Badge */}
           <span
-            className={`text-xs font-extrabold px-3 py-1 rounded-lg ${
+            className={`text-xs font-semibold px-2.5 py-0.5 rounded ${
               isResolved
-                ? 'badge-resolved'
+                ? 'chip-resolved'
                 : isInProgress
-                ? 'badge-in_progress'
-                : 'badge-reported'
+                ? 'chip-in_progress'
+                : 'chip-reported'
             }`}
           >
             {issue.status}
           </span>
 
+          {/* Priority Chip */}
+          <span
+            className={`text-xs font-semibold px-2 py-0.5 rounded ${
+              issue.priority === 'CRITICAL'
+                ? 'chip-critical'
+                : issue.priority === 'HIGH'
+                ? 'chip-high'
+                : issue.priority === 'MEDIUM'
+                ? 'chip-medium'
+                : 'chip-low'
+            }`}
+          >
+            {issue.priority} (Impact {issue.priorityScore})
+          </span>
+
           {/* SLA Badge */}
           {issue.isSlaBreached && (
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-300 dark:border-red-800 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> SLA Breached
+            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 flex items-center gap-1">
+              <Clock className="w-3 h-3" /> SLA Overdue
             </span>
           )}
 
@@ -203,10 +213,10 @@ function IssueDetailContent() {
           <button
             onClick={handleToggleUpvote}
             disabled={isUpvoting}
-            className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-xs font-bold transition border ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold transition border ${
               hasUpvoted
-                ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+                ? 'bg-blue-700 text-white border-blue-700'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50'
             }`}
           >
             <ThumbsUp className="w-3.5 h-3.5" />
@@ -216,78 +226,65 @@ function IssueDetailContent() {
           {/* Formal Letter Button */}
           <button
             onClick={handleOpenLetter}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold hover:bg-slate-800 transition"
+            className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold hover:bg-slate-800 transition"
           >
-            <FileText className="w-3.5 h-3.5 text-sky-400" />
-            <span>Complaint Letter</span>
+            <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <span>Generate Petition</span>
           </button>
         </div>
       </div>
 
       {/* Main Grid: Left Column = Analysis & Details; Right Column = Audit Timeline & Map */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2 cols) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-5">
           {/* Issue Summary Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-semibold px-2 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
                     {issue.category}
                   </span>
                   {issue.subcategory && (
-                    <span className="text-[11px] text-slate-400">• {issue.subcategory}</span>
+                    <span className="text-[11px] text-slate-500">• {issue.subcategory}</span>
                   )}
                 </div>
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {issue.title}
                 </h1>
-                <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-red-500" />
+                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   <span>{issue.locationText} ({issue.ward})</span>
                 </p>
               </div>
 
-              {/* Priority Score Circle */}
-              <div
-                className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black flex-shrink-0 ${
-                  issue.priority === 'CRITICAL'
-                    ? 'bg-red-500/10 text-red-600 border border-red-500/30'
-                    : issue.priority === 'HIGH'
-                    ? 'bg-orange-500/10 text-orange-600 border border-orange-500/30'
-                    : issue.priority === 'MEDIUM'
-                    ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30'
-                    : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30'
-                }`}
-              >
-                <span className="text-lg leading-none">{issue.priorityScore}</span>
-                <span className="text-[8px] uppercase tracking-tighter opacity-70">Impact</span>
+              {/* Priority Score Box */}
+              <div className="w-12 h-12 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex flex-col items-center justify-center font-mono flex-shrink-0">
+                <span className="text-base font-bold text-slate-900 dark:text-white leading-none">
+                  {issue.priorityScore}
+                </span>
+                <span className="text-[8px] uppercase tracking-tighter text-slate-500">Score</span>
               </div>
             </div>
 
             {/* Description Body */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Grievance Description
+            <div className="space-y-1">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Original Grievance Statement
               </h3>
-              <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap">
+              <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-3 rounded border border-slate-200 dark:border-slate-700 whitespace-pre-wrap">
                 {issue.originalText || issue.description}
               </p>
             </div>
 
-            {/* Multilingual Translation Banner */}
+            {/* Multilingual Translation Audit */}
             {issue.detectedLanguage && issue.detectedLanguage !== 'English' && (
-              <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900 rounded-xl p-3.5 text-xs space-y-1">
-                <div className="flex items-center justify-between font-bold text-sky-800 dark:text-sky-300">
-                  <span>Translated from {issue.detectedScript || issue.detectedLanguage}</span>
-                  {issue.isRomanizedIndic && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-200 dark:bg-sky-800 text-sky-900 dark:text-sky-100">
-                      Transliterated
-                    </span>
-                  )}
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded p-3 text-xs space-y-1">
+                <div className="flex items-center justify-between font-semibold text-slate-700 dark:text-slate-300">
+                  <span>Source: {issue.detectedScript || issue.detectedLanguage} {issue.isRomanizedIndic && '(Transliterated)'}</span>
                 </div>
-                <p className="text-slate-700 dark:text-slate-300 italic">
+                <p className="text-slate-800 dark:text-slate-200 font-mono text-[11px]">
                   &ldquo;{issue.englishTranslation}&rdquo;
                 </p>
               </div>
@@ -295,45 +292,45 @@ function IssueDetailContent() {
 
             {/* Evidence Image Gallery */}
             {(issue.imageUrl || issue.resolutionImageUrl) && (
-              <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Visual Evidence Inspection
+              <div className="space-y-1.5 pt-1">
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Field Evidence Photos
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {issue.imageUrl && (
                     <div className="space-y-1">
-                      <div className="relative h-44 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                      <div className="relative h-36 rounded border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <img
                           src={issue.imageUrl}
                           alt="Reported Issue Photo"
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold">
-                          ORIGINAL REPORT
+                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.2 rounded bg-slate-900/80 text-white text-[9px] font-semibold uppercase">
+                          Initial Inspection
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400">Photo captured by citizen</p>
+                      <p className="text-[10px] text-slate-500">Photographic evidence submitted by citizen</p>
                     </div>
                   )}
 
                   {issue.resolutionImageUrl && (
                     <div className="space-y-1">
-                      <div className="relative h-44 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                      <div className="relative h-36 rounded border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <img
                           src={issue.resolutionImageUrl}
                           alt="Resolution Photo"
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold">
-                          AFTER RESOLUTION
+                        <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded bg-emerald-700 text-white text-[9px] font-semibold uppercase">
+                          Completion Proof
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-emerald-600 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> AI Verified
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Certified by Municipal Inspector
                         </span>
-                        <span className="text-slate-400">
-                          {Math.round((issue.resolutionConfidence || 0.95) * 100)}% Confidence
+                        <span className="text-slate-400 font-mono">
+                          {Math.round((issue.resolutionConfidence || 0.95) * 100)}% Match
                         </span>
                       </div>
                     </div>
@@ -343,61 +340,49 @@ function IssueDetailContent() {
             )}
           </div>
 
-          {/* Gemini AI Intelligence Breakdown Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-sky-600" />
-                <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
-                  Gemini AI Civic Intelligence Engine
-                </h2>
-              </div>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                  issue.isAiAnalyzed
-                    ? 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                }`}
-              >
-                {issue.isAiAnalyzed ? 'AI Analysed' : 'Basic rules (AI offline)'}
+          {/* Triage Justification & Risk Assessment */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Automated Triage Analysis &amp; Routing
+              </h2>
+              <span className="text-[10px] text-slate-500 border border-slate-200 dark:border-slate-700 px-1.5 py-0.2 rounded">
+                {issue.isAiAnalyzed ? 'AI Triage Certified' : 'Rule-Based Fallback'}
               </span>
             </div>
 
-            {/* AI Summary for Officials */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">
-                Official Executive Summary
+              <span className="text-[10px] font-semibold text-slate-500 uppercase">
+                Official Summary for Departmental File
               </span>
-              <p className="text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
-                {issue.aiSummary || 'Civic grievance registered for administrative review.'}
+              <p className="text-xs text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded border border-slate-200 dark:border-slate-700">
+                {issue.aiSummary || 'Civic infrastructure complaint registered for engineering action.'}
               </p>
             </div>
 
-            {/* Plain-Language Citizen Reasoning */}
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase">
                 Public Transparency Reasoning
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-800 leading-relaxed">
-                {issue.aiReasoning || 'Assigned based on municipal departmental jurisdiction.'}
+              <p className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded border border-slate-200 dark:border-slate-700 leading-relaxed">
+                {issue.aiReasoning || 'Routed to jurisdiction unit according to municipal Citizen Charter guidelines.'}
               </p>
             </div>
 
-            {/* Priority Factor Weights */}
             {factors.length > 0 && (
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase">
-                  Multi-Factor Impact Weighting
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-semibold text-slate-500 uppercase">
+                  Multi-Factor Safety Risk Assessment
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {factors.map((factor, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-xs"
+                      className="p-2.5 rounded bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs"
                     >
-                      <div className="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200 mb-1">
+                      <div className="flex items-center justify-between font-semibold text-slate-800 dark:text-slate-200 mb-0.5">
                         <span>{factor.factor}</span>
-                        <span className="text-sky-600 font-mono">{factor.weight}%</span>
+                        <span className="font-mono text-slate-600 dark:text-slate-400">{factor.weight}%</span>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-tight">
                         {factor.explanation}
@@ -410,31 +395,31 @@ function IssueDetailContent() {
           </div>
         </div>
 
-        {/* Right Column (1 col): Status Timeline & Details */}
-        <div className="space-y-6">
+        {/* Right Column (1 col): Department, SLA, Timeline */}
+        <div className="space-y-5">
           {/* Assigned Department Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Department Assignment
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Departmental Unit
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-600 flex items-center justify-center">
-                  <Building2 className="w-5 h-5" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
+                  <Building className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
                     {issue.department}
                   </h4>
-                  <p className="text-[11px] text-slate-400">
-                    Officer: {issue.assignedOfficer || 'Divisional Maintenance Unit'}
+                  <p className="text-[11px] text-slate-500">
+                    Crew: {issue.assignedOfficer || 'Divisional Maintenance Crew'}
                   </p>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400">SLA Due Date:</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-slate-500">SLA Due Date:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200 font-mono text-[11px]">
                   {issue.slaDueAt
                     ? new Date(issue.slaDueAt).toLocaleString('en-IN', {
                         day: 'numeric',
@@ -442,47 +427,36 @@ function IssueDetailContent() {
                         hour: '2-digit',
                         minute: '2-digit',
                       })
-                    : 'Within 24 Hours'}
+                    : 'Standard 24h'}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Vertical Status Timeline */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-sky-600" />
-                <span>Audit Status Timeline</span>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Audit Status Log</span>
               </h3>
               <span className="text-[10px] font-mono text-slate-400">
-                {issue.statusEvents?.length || 1} Events
+                {issue.statusEvents?.length || 1} Entries
               </span>
             </div>
 
-            <div className="space-y-6 relative pl-4 before:absolute before:top-2 before:bottom-2 before:left-1 before:w-[2px] before:bg-slate-200 dark:before:bg-slate-800">
+            <div className="space-y-4 relative pl-3 before:absolute before:top-2 before:bottom-2 before:left-0.5 before:w-[1px] before:bg-slate-200 dark:before:bg-slate-800">
               {issue.statusEvents && issue.statusEvents.length > 0 ? (
                 issue.statusEvents.map((evt, idx) => (
-                  <div key={evt.id || idx} className="relative group">
-                    {/* Timeline Node Dot */}
-                    <div
-                      className={`absolute -left-[19px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
-                        evt.toStatus === 'RESOLVED'
-                          ? 'bg-emerald-500'
-                          : evt.toStatus === 'IN_PROGRESS'
-                          ? 'bg-purple-500'
-                          : 'bg-blue-500'
-                      }`}
-                    />
-
-                    <div className="space-y-1">
+                  <div key={evt.id || idx} className="relative group pl-2">
+                    <div className="space-y-0.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        <span className="text-xs font-semibold text-slate-900 dark:text-white">
                           {evt.toStatus === 'NONE'
                             ? 'Reported'
                             : evt.toStatus.replace('_', ' ')}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-400 font-mono">
                           {new Date(evt.createdAt).toLocaleDateString('en-IN', {
                             day: 'numeric',
                             month: 'short',
@@ -491,7 +465,7 @@ function IssueDetailContent() {
                           })}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-tight">
                         {evt.note}
                       </p>
                       {evt.actor && (
@@ -504,21 +478,21 @@ function IssueDetailContent() {
                   </div>
                 ))
               ) : (
-                <div className="text-xs text-slate-400">Timeline events initializing...</div>
+                <div className="text-xs text-slate-400">Log entries initializing...</div>
               )}
             </div>
           </div>
 
           {/* Location Map Pin */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-red-500" />
-              <span>Location Coordinates</span>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-2">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Geotag Coordinates</span>
             </h3>
-            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <p className="text-xs text-slate-700 dark:text-slate-300 truncate">
               {issue.locationText}
             </p>
-            <div className="h-[220px] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="h-[200px] rounded border border-slate-200 dark:border-slate-700 overflow-hidden">
               <IssueDetailMap lat={issue.lat} lng={issue.lng} onChange={() => {}} />
             </div>
           </div>
@@ -527,41 +501,42 @@ function IssueDetailContent() {
 
       {/* Formal Letter Modal */}
       {isLetterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-md max-w-2xl w-full p-5 shadow-xl border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-sky-600" />
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                  Official Formal Grievance Letter ({issue.trackingId})
+                <FileText className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                  Official Grievance Memorandum ({issue.trackingId})
                 </h3>
               </div>
               <button
                 onClick={() => setIsLetterModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 text-sm px-1"
               >
                 ✕
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+            <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
               {formalLetterText}
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 mt-3">
               <button
                 onClick={copyLetter}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition shadow-sm"
+                className="flex items-center gap-1 px-3 py-1.5 rounded bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition"
               >
-                {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{isCopied ? 'Copied!' : 'Copy Letter'}</span>
+                {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{isCopied ? 'Copied' : 'Copy Text'}</span>
               </button>
 
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="flex items-center gap-1 px-3 py-1.5 rounded border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 transition"
               >
-                <span>Print / Save as PDF</span>
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Document</span>
               </button>
             </div>
           </div>
@@ -573,10 +548,8 @@ function IssueDetailContent() {
 
 export default function IssueDetailPage() {
   return (
-    <React.Suspense fallback={<div className="max-w-4xl mx-auto px-4 py-16 text-center text-xs text-slate-400">Loading grievance ledger...</div>}>
+    <React.Suspense fallback={<div className="max-w-4xl mx-auto px-4 py-16 text-center text-xs text-slate-400">Loading grievance docket...</div>}>
       <IssueDetailContent />
     </React.Suspense>
   );
 }
-
-

@@ -1,107 +1,145 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Enterprise / Institutional Design System (Google & Microsoft Design Standards) */
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  --primary: #0284c7;
+  --primary: #1d4ed8;       /* Institutional Royal Blue */
+  --primary-hover: #1e40af;
   --primary-foreground: #ffffff;
   --border: #e2e8f0;
+  --muted: #64748b;
+  --muted-bg: #f1f5f9;
 }
 
 .dark {
-  --background: #090d16;
+  --background: #0b0f17;
   --foreground: #f8fafc;
-  --card: #111827;
+  --card: #131b2e;
   --card-foreground: #f8fafc;
-  --primary: #38bdf8;
-  --primary-foreground: #0f172a;
-  --border: #1f2937;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-foreground: #ffffff;
+  --border: #1e293b;
+  --muted: #94a3b8;
+  --muted-bg: #1e293b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+/* Institutional Panels */
+.gov-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
 }
 
-.dark .glass-panel {
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(55, 65, 81, 0.6);
+/* Micro Status Chips (Subtle, professional, no neon glow) */
+.chip-critical {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.dark .chip-critical {
+  background: rgba(153, 27, 27, 0.2);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
 }
 
-/* Priority Badges */
-.badge-critical {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+.chip-high {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+.dark .chip-high {
+  background: rgba(154, 52, 18, 0.2);
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.3);
 }
 
-.badge-high {
-  background: rgba(249, 115, 22, 0.12);
-  color: #ea580c;
-  border: 1px solid rgba(249, 115, 22, 0.3);
+.chip-medium {
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+.dark .chip-medium {
+  background: rgba(133, 77, 14, 0.2);
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
 }
 
-.badge-medium {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+.chip-low {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
-
-.badge-low {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.dark .chip-low {
+  background: rgba(22, 101, 52, 0.2);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
 }
 
 /* Status Badges */
-.badge-reported {
-  background: rgba(59, 130, 246, 0.12);
-  color: #2563eb;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+.chip-reported {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.dark .chip-reported {
+  background: rgba(30, 64, 175, 0.2);
+  color: #93c5fd;
+  border-color: rgba(147, 197, 253, 0.3);
 }
 
-.badge-in_progress {
-  background: rgba(168, 85, 247, 0.12);
-  color: #9333ea;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+.chip-in_progress {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.dark .chip-in_progress {
+  background: rgba(146, 64, 14, 0.2);
+  color: #fcd34d;
+  border-color: rgba(252, 211, 77, 0.3);
 }
 
-.badge-resolved {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.chip-resolved {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.dark .chip-resolved {
+  background: rgba(22, 101, 52, 0.2);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Minimal Enterprise */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 .dark ::-webkit-scrollbar-thumb {
   background: #334155;
 }
 
-/* Leaflet container fix */
+/* Leaflet container */
 .leaflet-container {
   width: 100%;
   height: 100%;

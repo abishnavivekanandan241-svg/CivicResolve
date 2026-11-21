@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
   LayoutDashboard,
-  Sparkles,
   AlertTriangle,
   Clock,
   CheckCircle2,
@@ -12,7 +11,7 @@ import {
   Search,
   Filter,
   UserCheck,
-  Building2,
+  Building,
   MapPin,
   Camera,
   RefreshCw,
@@ -24,32 +23,15 @@ import {
   X,
   FileCheck,
   Check,
+  ShieldAlert,
 } from 'lucide-react';
 import { IssueData, BacklogSummary } from '@/lib/types';
 import { DEPARTMENTS, CATEGORIES } from '@/lib/gemini';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
 
 const AdminOperationsMap = dynamic(
   () => import('@/components/Map/TransparencyHeatmap'),
-  { ssr: false, loading: () => <div className="h-[480px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl" /> }
+  { ssr: false, loading: () => <div className="h-[480px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md" /> }
 );
-
-const PRIORITY_COLORS = {
-  CRITICAL: '#ef4444',
-  HIGH: '#f97316',
-  MEDIUM: '#f59e0b',
-  LOW: '#10b981',
-};
 
 export default function AdminPage() {
   const [stats, setStats] = useState<any>(null);
@@ -121,7 +103,6 @@ export default function AdminPage() {
     setIsDrawerOpen(true);
   };
 
-  // Handle Photo upload for resolution in Drawer
   const handleResolutionPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -133,10 +114,9 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
-  // Run AI Resolution Verification
   const handleRunAiVerification = async () => {
     if (!selectedIssue || !afterImageBase64) {
-      alert('Please select or upload a resolution after-photo to verify.');
+      alert('Please select an after-repair inspection photo to verify.');
       return;
     }
 
@@ -168,7 +148,6 @@ export default function AdminPage() {
     }
   };
 
-  // Submit Admin Updates
   const handleSaveDrawerUpdate = async () => {
     if (!selectedIssue) return;
     setIsUpdating(true);
@@ -180,7 +159,6 @@ export default function AdminPage() {
         assignedOfficer: drawerOfficer,
       };
 
-      // Check for human overrides
       if (drawerCategory !== selectedIssue.category) {
         payload.overrideCategory = drawerCategory;
       }
@@ -194,7 +172,7 @@ export default function AdminPage() {
       if (afterImageBase64) {
         payload.resolutionImageUrl = afterImageBase64;
         payload.resolutionVerified = verificationFeedback?.resolved ?? true;
-        payload.resolutionNote = drawerNote || 'Work inspected and verified by municipal administrator.';
+        payload.resolutionNote = drawerNote || 'Field work verified and certified by municipal engineering staff.';
       }
 
       const res = await fetch(`/api/issues/${selectedIssue.id}`, {
@@ -217,7 +195,6 @@ export default function AdminPage() {
     }
   };
 
-  // Filter issues
   const filteredIssues = issues.filter((i) => {
     if (statusFilter !== 'ALL' && i.status !== statusFilter) return false;
     if (priorityFilter !== 'ALL' && i.priority !== priorityFilter) return false;
@@ -236,29 +213,30 @@ export default function AdminPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800 flex items-center gap-1">
-              <UserCheck className="w-3 h-3" /> Erode City Municipal Administration
+            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 flex items-center gap-1 uppercase tracking-wider">
+              <UserCheck className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+              Municipal Command Console
             </span>
-            <span className="text-xs text-slate-400">Commissioner Operations Console</span>
+            <span className="text-xs text-slate-400">Commissioner Operations Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <LayoutDashboard className="w-7 h-7 text-indigo-600" />
-            <span>AI Grievance Triage &amp; Dispatch Center</span>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-blue-700 dark:text-blue-400" />
+            <span>Grievance Triage &amp; Crew Dispatch Center</span>
           </h1>
         </div>
 
         {/* Tab switch */}
-        <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 p-1 bg-white dark:bg-slate-900 shadow-xs self-start sm:self-auto">
+        <div className="flex rounded border border-slate-300 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-900 shadow-xs self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('table')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
               activeTab === 'table'
-                ? 'bg-indigo-600 text-white shadow-xs'
+                ? 'bg-blue-700 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
             }`}
           >
@@ -266,127 +244,125 @@ export default function AdminPage() {
           </button>
           <button
             onClick={() => setActiveTab('map')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
               activeTab === 'map'
-                ? 'bg-indigo-600 text-white shadow-xs'
+                ? 'bg-blue-700 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
             }`}
           >
-            Incident Heatmap &amp; Clusters
+            Incident Heatmap
           </button>
         </div>
       </div>
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Grievances</span>
-          <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Registered</span>
+          <div className="text-xl font-bold text-slate-900 dark:text-white mt-0.5 font-mono">
             {stats?.totalIssues ?? 40}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-500">New Reported</span>
-          <div className="text-2xl font-black text-blue-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Newly Reported</span>
+          <div className="text-xl font-bold text-blue-700 dark:text-blue-400 mt-0.5 font-mono">
             {stats?.reportedCount ?? 18}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-500">In Progress</span>
-          <div className="text-2xl font-black text-purple-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">In Progress</span>
+          <div className="text-xl font-bold text-amber-700 dark:text-amber-400 mt-0.5 font-mono">
             {stats?.inProgressCount ?? 14}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Resolved</span>
-          <div className="text-2xl font-black text-emerald-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Certified Resolved</span>
+          <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-0.5 font-mono">
             {stats?.resolvedCount ?? 8}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-red-500">Critical Open</span>
-          <div className="text-2xl font-black text-red-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Critical Priority</span>
+          <div className="text-xl font-bold text-rose-700 dark:text-rose-400 mt-0.5 font-mono">
             {stats?.criticalCount ?? 7}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">SLA Breached</span>
-          <div className="text-2xl font-black text-amber-600 mt-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">SLA Overdue</span>
+          <div className="text-xl font-bold text-rose-700 dark:text-rose-400 mt-0.5 font-mono">
             {stats?.slaBreachedCount ?? 5}
           </div>
         </div>
       </div>
 
-      {/* AI Chief of Staff Briefing ("Today's Briefing") */}
+      {/* Official Executive Operations Memorandum */}
       {briefing && (
-        <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-sky-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-indigo-700/40 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-700/50 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/30 flex items-center justify-center text-indigo-300">
-                <Sparkles className="w-4 h-4 text-indigo-300" />
+        <div className="bg-slate-900 text-slate-100 rounded-md p-5 border border-slate-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded bg-blue-600 flex items-center justify-center text-white">
+                <FileCheck className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-300">
-                  Gemini Operations Chief of Staff
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  Daily Municipal Operations Memo
                 </span>
-                <h2 className="text-base sm:text-lg font-black text-white">
-                  Today&apos;s Field Briefing &amp; Optimization
+                <h2 className="text-sm font-bold text-white">
+                  Field Backlog Status &amp; Dispatch Allocation
                 </h2>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 font-bold">
-                {briefing.criticalUrgentCount} High Peril Clusters
+              <span className="text-[11px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-semibold">
+                {briefing.criticalUrgentCount} Urgent Attention
               </span>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+              <span className="text-[11px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-semibold">
                 {briefing.slaBreachedCount} Overdue SLA
               </span>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed">
+          <p className="text-xs text-slate-300 leading-relaxed font-sans">
             {briefing.headline}
           </p>
 
-          {/* Top Clusters & Suggested Work Order Groupings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            {/* Urgent Incident Clusters */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-400" /> Top Priority Area Hotspots
+          {/* Top Hotspots & Work Orders */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="bg-slate-800/60 border border-slate-700/60 rounded p-3 space-y-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-400" /> High-Density Infrastructure Hotspots
               </span>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {briefing.topClusters?.slice(0, 2).map((c, idx) => (
-                  <div key={idx} className="text-xs bg-black/20 p-2.5 rounded-lg">
-                    <div className="font-bold text-white flex items-center justify-between">
+                  <div key={idx} className="text-xs bg-slate-900/60 p-2 rounded border border-slate-700/40">
+                    <div className="font-semibold text-white flex items-center justify-between">
                       <span>{c.title}</span>
-                      <span className="text-amber-300 font-mono">{c.count} issues</span>
+                      <span className="text-amber-400 font-mono text-[11px]">{c.count} complaints</span>
                     </div>
-                    <p className="text-[11px] text-indigo-200 mt-0.5">{c.description}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{c.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Suggested Work Order Grouping (Saves Crew Travel!) */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-emerald-400" /> Smart Work-Order Grouping (Travel Time Saver)
+            <div className="bg-slate-800/60 border border-slate-700/60 rounded p-3 space-y-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-blue-400" /> Coordinated Field Crew Dispatch Recommendations
               </span>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {briefing.suggestedWorkOrders?.slice(0, 2).map((wo, idx) => (
-                  <div key={idx} className="text-xs bg-black/20 p-2.5 rounded-lg">
-                    <div className="font-bold text-white flex items-center justify-between">
+                  <div key={idx} className="text-xs bg-slate-900/60 p-2 rounded border border-slate-700/40">
+                    <div className="font-semibold text-white flex items-center justify-between">
                       <span>{wo.crewTitle}</span>
-                      <span className="text-emerald-300 text-[10px]">{wo.area}</span>
+                      <span className="text-blue-300 text-[10px] font-medium">{wo.area}</span>
                     </div>
-                    <p className="text-[11px] text-indigo-200 mt-0.5">{wo.benefit}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{wo.benefit}</p>
                   </div>
                 ))}
               </div>
@@ -397,46 +373,41 @@ export default function AdminPage() {
 
       {/* Main Tab Content */}
       {activeTab === 'map' ? (
-        /* ADMIN MAP VIEW */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-                Live Incident Map &amp; Work Order Hotspots
-              </h2>
-              <p className="text-xs text-slate-500">
-                Click any incident to open the dispatch drawer and re-assign or update status.
-              </p>
-            </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 space-y-3">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Geospatial Operations &amp; Dispatch Map
+            </h2>
+            <p className="text-xs text-slate-500">
+              Click any incident marker to open the inspection drawer and adjust assignment or log repairs.
+            </p>
           </div>
           <AdminOperationsMap
             issues={issues}
-            height="520px"
+            height="500px"
             onSelectIssue={(issue) => openIssueDrawer(issue)}
           />
         </div>
       ) : (
-        /* ADMIN TABLE VIEW */
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Table Filters Toolbar */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3 flex flex-wrap items-center justify-between gap-3">
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search tracking ID, street, title..."
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200 font-medium"
+                className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="REPORTED">Reported</option>
@@ -444,11 +415,10 @@ export default function AdminPage() {
                 <option value="RESOLVED">Resolved</option>
               </select>
 
-              {/* Priority Filter */}
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200 font-medium"
+                className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
               >
                 <option value="ALL">All Priorities</option>
                 <option value="CRITICAL">Critical</option>
@@ -457,11 +427,10 @@ export default function AdminPage() {
                 <option value="LOW">Low</option>
               </select>
 
-              {/* Department Filter */}
               <select
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200 font-medium"
+                className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
               >
                 <option value="ALL">All Departments</option>
                 {DEPARTMENTS.map((dept) => (
@@ -474,18 +443,18 @@ export default function AdminPage() {
           </div>
 
           {/* Grievance Management Table */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 uppercase tracking-wider text-[10px] font-bold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 uppercase tracking-wider text-[10px] font-semibold border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="px-4 py-3">Tracking ID</th>
-                    <th className="px-4 py-3">Score &amp; Priority</th>
-                    <th className="px-4 py-3">Grievance Details</th>
-                    <th className="px-4 py-3">Ward &amp; Location</th>
-                    <th className="px-4 py-3">Department &amp; Officer</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Action</th>
+                    <th className="px-3.5 py-2.5">Tracking ID</th>
+                    <th className="px-3.5 py-2.5">Priority</th>
+                    <th className="px-3.5 py-2.5">Grievance Subject</th>
+                    <th className="px-3.5 py-2.5">Ward &amp; Street</th>
+                    <th className="px-3.5 py-2.5">Assigned Unit</th>
+                    <th className="px-3.5 py-2.5">Status</th>
+                    <th className="px-3.5 py-2.5 text-right">Triage</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -495,51 +464,33 @@ export default function AdminPage() {
                       onClick={() => openIssueDrawer(issue)}
                       className="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition"
                     >
-                      {/* Tracking ID */}
-                      <td className="px-4 py-3.5 font-mono font-bold text-indigo-600">
+                      <td className="px-3.5 py-3 font-mono font-semibold text-blue-700 dark:text-blue-400">
                         {issue.trackingId}
                         {issue.isHumanOverridden && (
-                          <span className="block text-[9px] text-amber-500 font-sans font-semibold">
-                            Human Override
+                          <span className="block text-[9px] text-amber-600 font-sans font-medium">
+                            Override
                           </span>
                         )}
                       </td>
 
-                      {/* AI Priority Score */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
-                              issue.priority === 'CRITICAL'
-                                ? 'bg-red-500/10 text-red-600'
-                                : issue.priority === 'HIGH'
-                                ? 'bg-orange-500/10 text-orange-600'
-                                : issue.priority === 'MEDIUM'
-                                ? 'bg-amber-500/10 text-amber-600'
-                                : 'bg-emerald-500/10 text-emerald-600'
-                            }`}
-                          >
-                            {issue.priorityScore}
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                              issue.priority === 'CRITICAL'
-                                ? 'badge-critical'
-                                : issue.priority === 'HIGH'
-                                ? 'badge-high'
-                                : issue.priority === 'MEDIUM'
-                                ? 'badge-medium'
-                                : 'badge-low'
-                            }`}
-                          >
-                            {issue.priority}
-                          </span>
-                        </div>
+                      <td className="px-3.5 py-3">
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                            issue.priority === 'CRITICAL'
+                              ? 'chip-critical'
+                              : issue.priority === 'HIGH'
+                              ? 'chip-high'
+                              : issue.priority === 'MEDIUM'
+                              ? 'chip-medium'
+                              : 'chip-low'
+                          }`}
+                        >
+                          {issue.priority} ({issue.priorityScore})
+                        </span>
                       </td>
 
-                      {/* Details */}
-                      <td className="px-4 py-3.5 max-w-xs">
-                        <div className="font-semibold text-slate-900 dark:text-white truncate">
+                      <td className="px-3.5 py-3 max-w-xs">
+                        <div className="font-medium text-slate-900 dark:text-white truncate">
                           {issue.title}
                         </div>
                         <div className="text-[11px] text-slate-500 truncate mt-0.5">
@@ -547,44 +498,41 @@ export default function AdminPage() {
                         </div>
                       </td>
 
-                      {/* Ward */}
-                      <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300">
-                        <div className="font-medium truncate max-w-[140px]">{issue.ward}</div>
-                        <div className="text-[10px] text-slate-400 truncate max-w-[140px]">
+                      <td className="px-3.5 py-3 text-slate-600 dark:text-slate-300">
+                        <div className="truncate max-w-[130px] font-medium">{issue.ward}</div>
+                        <div className="text-[10px] text-slate-400 truncate max-w-[130px]">
                           {issue.locationText}
                         </div>
                       </td>
 
-                      {/* Department */}
-                      <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300">
+                      <td className="px-3.5 py-3 text-slate-600 dark:text-slate-300">
                         <div className="font-medium">{issue.department}</div>
-                        <div className="text-[10px] text-slate-400 truncate max-w-[140px]">
-                          {issue.assignedOfficer || 'Pending Assignment'}
+                        <div className="text-[10px] text-slate-400 truncate max-w-[130px]">
+                          {issue.assignedOfficer || 'Pending Crew'}
                         </div>
                       </td>
 
-                      {/* Status */}
-                      <td className="px-4 py-3.5">
+                      <td className="px-3.5 py-3">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                             issue.status === 'RESOLVED'
-                              ? 'badge-resolved'
+                              ? 'chip-resolved'
                               : issue.status === 'IN_PROGRESS'
-                              ? 'badge-in_progress'
-                              : 'badge-reported'
+                              ? 'chip-in_progress'
+                              : 'chip-reported'
                           }`}
                         >
                           {issue.status}
                         </span>
                         {issue.isSlaBreached && (
-                          <span className="block text-[9px] text-red-500 font-bold mt-0.5">
-                            SLA Breached
+                          <span className="block text-[9px] text-rose-600 font-semibold mt-0.5">
+                            SLA Overdue
                           </span>
                         )}
                       </td>
 
-                      <td className="px-4 py-3.5 text-right font-bold text-indigo-600">
-                        Review →
+                      <td className="px-3.5 py-3 text-right font-semibold text-blue-700 dark:text-blue-400">
+                        Inspect →
                       </td>
                     </tr>
                   ))}
@@ -598,47 +546,47 @@ export default function AdminPage() {
       {/* ================= ADMIN ISSUE SIDE DRAWER ================= */}
       {isDrawerOpen && selectedIssue && (
         <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-xl h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-150">
             {/* Drawer Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-indigo-600">
+                  <span className="font-mono text-xs font-bold text-blue-700 dark:text-blue-400">
                     {selectedIssue.trackingId}
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                       selectedIssue.priority === 'CRITICAL'
-                        ? 'badge-critical'
+                        ? 'chip-critical'
                         : selectedIssue.priority === 'HIGH'
-                        ? 'badge-high'
+                        ? 'chip-high'
                         : selectedIssue.priority === 'MEDIUM'
-                        ? 'badge-medium'
-                        : 'badge-low'
+                        ? 'chip-medium'
+                        : 'chip-low'
                     }`}
                   >
-                    Score {selectedIssue.priorityScore}
+                    Impact Score {selectedIssue.priorityScore}
                   </span>
                 </div>
-                <h2 className="text-base font-extrabold text-slate-900 dark:text-white mt-1 line-clamp-1">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white mt-1 line-clamp-1">
                   {selectedIssue.title}
                 </h2>
               </div>
 
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1 rounded text-slate-400 hover:text-slate-600 text-sm"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
             {/* Drawer Body Scroll */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Status Update Control */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                  Update Grievance Lifecycle Status
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Update Lifecycle Status
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {['REPORTED', 'IN_PROGRESS', 'RESOLVED'].map((st) => (
@@ -646,14 +594,10 @@ export default function AdminPage() {
                       key={st}
                       type="button"
                       onClick={() => setDrawerStatus(st)}
-                      className={`py-2 text-xs font-bold rounded-xl border transition ${
+                      className={`py-1.5 text-xs font-semibold rounded border transition ${
                         drawerStatus === st
-                          ? st === 'RESOLVED'
-                            ? 'bg-emerald-600 text-white border-emerald-600'
-                            : st === 'IN_PROGRESS'
-                            ? 'bg-purple-600 text-white border-purple-600'
-                            : 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          ? 'bg-blue-700 text-white border-blue-700'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                       }`}
                     >
                       {st.replace('_', ' ')}
@@ -662,51 +606,50 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Status Note (Drafted by AI or Custom) */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                  <span>Public Audit Note</span>
-                  <span className="text-[10px] text-indigo-500 font-semibold">Gemini auto-drafts if empty</span>
+              {/* Status Note */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Public Audit Log Note
                 </label>
                 <textarea
                   rows={2}
                   value={drawerNote}
                   onChange={(e) => setDrawerNote(e.target.value)}
-                  placeholder="e.g. Field crew deployed under Eng. Sundaram with hot mix bitumen..."
-                  className="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. Bitumen patch crew deployed under Ward 3 Supervisor..."
+                  className="w-full text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               {/* Officer Assignment */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                  Assign Officer / Crew Head
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Assigned Crew Officer
                 </label>
                 <input
                   type="text"
                   value={drawerOfficer}
                   onChange={(e) => setDrawerOfficer(e.target.value)}
-                  placeholder="Officer name and designation..."
-                  className="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Officer name or crew designation"
+                  className="w-full text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-slate-900 dark:text-white focus:outline-none focus:border-blue-600"
                 />
               </div>
 
-              {/* Human Override Accordion */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Human Override Controls (Logged to Audit Trail)</span>
+              {/* Human Override Controls */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded p-3 space-y-2.5">
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Administrative Override Parameters</span>
                 </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[11px] text-slate-500 font-semibold block mb-1">
+                    <label className="text-[10px] text-slate-500 font-semibold block mb-0.5">
                       Category
                     </label>
                     <select
                       value={drawerCategory}
                       onChange={(e) => setDrawerCategory(e.target.value)}
-                      className="w-full text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
+                      className="w-full text-[11px] rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white"
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>
@@ -717,13 +660,13 @@ export default function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] text-slate-500 font-semibold block mb-1">
+                    <label className="text-[10px] text-slate-500 font-semibold block mb-0.5">
                       Priority
                     </label>
                     <select
                       value={drawerPriority}
                       onChange={(e) => setDrawerPriority(e.target.value)}
-                      className="w-full text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
+                      className="w-full text-[11px] rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white"
                     >
                       {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
                         <option key={p} value={p}>
@@ -734,13 +677,13 @@ export default function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] text-slate-500 font-semibold block mb-1">
+                    <label className="text-[10px] text-slate-500 font-semibold block mb-0.5">
                       Department
                     </label>
                     <select
                       value={drawerDepartment}
                       onChange={(e) => setDrawerDepartment(e.target.value)}
-                      className="w-full text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
+                      className="w-full text-[11px] rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-slate-900 dark:text-white"
                     >
                       {DEPARTMENTS.map((d) => (
                         <option key={d} value={d}>
@@ -752,24 +695,24 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Resolution Photo Upload & AI Verification */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Resolution Proof &amp; AI Verification</span>
+              {/* Resolution Photo Upload & Verification */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded p-3 space-y-2.5">
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Completion Evidence &amp; Visual Verification</span>
                 </span>
 
                 {afterImageBase64 ? (
                   <div className="space-y-2">
-                    <div className="relative h-32 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                    <div className="relative h-28 rounded overflow-hidden border border-slate-300 dark:border-slate-700">
                       <img
                         src={afterImageBase64}
-                        alt="Resolution after proof"
+                        alt="Resolution proof"
                         className="w-full h-full object-cover"
                       />
                       <button
                         onClick={() => setAfterImageBase64(undefined)}
-                        className="absolute top-2 right-2 p-1 rounded-full bg-slate-900/80 text-white text-xs"
+                        className="absolute top-1 right-1 px-1.5 py-0.2 rounded bg-slate-900 text-white text-[10px]"
                       >
                         ✕
                       </button>
@@ -779,17 +722,16 @@ export default function AdminPage() {
                       type="button"
                       onClick={handleRunAiVerification}
                       disabled={isVerifying}
-                      className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5"
+                      className="w-full py-1.5 rounded bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{isVerifying ? 'Gemini Inspecting Proof...' : 'Run Gemini Resolution Verification'}</span>
+                      <span>{isVerifying ? 'Verifying...' : 'Verify Resolution Evidence'}</span>
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <Camera className="w-5 h-5 text-slate-400 mb-1" />
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                      Upload After-Repair Evidence Photo
+                  <label className="flex flex-col items-center justify-center w-full h-20 border border-dashed border-slate-300 dark:border-slate-700 rounded cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <Camera className="w-4 h-4 text-slate-400 mb-1" />
+                    <span className="text-xs text-slate-600 dark:text-slate-300">
+                      Upload Post-Repair Evidence Photo
                     </span>
                     <input
                       type="file"
@@ -802,31 +744,29 @@ export default function AdminPage() {
 
                 {/* Verification Feedback Banner */}
                 {verificationFeedback && (
-                  <div
-                    className={`p-3 rounded-xl border text-xs space-y-1 ${
-                      verificationFeedback.resolved
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
-                        : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200'
-                    }`}
-                  >
-                    <div className="font-bold flex items-center justify-between">
-                      <span>{verificationFeedback.resolved ? 'AI Verified: Clean & Repaired' : 'Verification Warning'}</span>
-                      <span className="font-mono">
-                        {Math.round(verificationFeedback.confidence * 100)}% Confidence
+                  <div className="p-2.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs space-y-1">
+                    <div className="font-semibold flex items-center justify-between">
+                      <span className="text-emerald-700 dark:text-emerald-400">
+                        {verificationFeedback.resolved ? 'Verification Certified' : 'Verification Flagged'}
+                      </span>
+                      <span className="font-mono text-slate-500">
+                        {Math.round(verificationFeedback.confidence * 100)}% Match
                       </span>
                     </div>
-                    <p className="text-[11px] leading-tight">{verificationFeedback.explanation}</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-tight">
+                      {verificationFeedback.explanation}
+                    </p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between gap-3">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+                className="px-3 py-1.5 rounded border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -835,9 +775,9 @@ export default function AdminPage() {
                 type="button"
                 onClick={handleSaveDrawerUpdate}
                 disabled={isUpdating}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition disabled:opacity-50"
+                className="px-5 py-1.5 rounded bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition disabled:opacity-50"
               >
-                {isUpdating ? 'Saving Audit Record...' : 'Confirm Update & Log Audit'}
+                {isUpdating ? 'Saving Record...' : 'Confirm Audit Log Update'}
               </button>
             </div>
           </div>
@@ -846,4 +786,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
