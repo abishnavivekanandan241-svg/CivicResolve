@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 
+// Ensure Prisma engine never throws if DATABASE_URL is not set in production
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.TURSO_DATABASE_URL || 'file:./dev.db';
+}
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
