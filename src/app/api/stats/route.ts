@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrTranslateEntityFields } from '@/lib/translation';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const lang = (searchParams.get('lang') || 'en').toLowerCase().trim();
     const issues = await prisma.issue.findMany({
       select: {
         id: true,
@@ -116,6 +121,46 @@ export async function GET() {
       { priority: 'LOW', count: issues.filter((i) => i.priority === 'LOW').length },
     ];
 
+    // Translate names if target language is not English
+    let finalCategoryStats = categoryStats;
+    let finalDepartmentStats = departmentStats;
+    let finalWardLeaderboard = wardLeaderboard;
+
+    if (lang !== 'en') {
+      const transPayload: Record<string, string> = {};
+      categoryStats.forEach((c, idx) => {
+        transPayload[`cat_${idx}`] = c.name;
+      });
+      departmentStats.forEach((d, idx) => {
+        transPayload[`dept_${idx}`] = d.name;
+      });
+      wardLeaderboard.forEach((w, idx) => {
+        transPayload[`ward_${idx}`] = w.ward;
+      });
+
+      const translated = await getOrTranslateEntityFields({
+        entityType: 'StatsMetadata',
+        entityId: 'global',
+        fields: transPayload,
+        targetLang: lang,
+      });
+
+      finalCategoryStats = categoryStats.map((c, idx) => ({
+        ...c,
+        name: translated[`cat_${idx}`] || c.name,
+      }));
+
+      finalDepartmentStats = departmentStats.map((d, idx) => ({
+        ...d,
+        name: translated[`dept_${idx}`] || d.name,
+      }));
+
+      finalWardLeaderboard = wardLeaderboard.map((w, idx) => ({
+        ...w,
+        ward: translated[`ward_${idx}`] || w.ward,
+      }));
+    }
+
     return NextResponse.json({
       success: true,
       stats: {
@@ -127,9 +172,9 @@ export async function GET() {
         slaBreachedCount: slaBreachedIssues.length,
         resolvedPercentage,
         avgResolutionHours,
-        categoryStats,
-        departmentStats,
-        wardLeaderboard,
+        categoryStats: finalCategoryStats,
+        departmentStats: finalDepartmentStats,
+        wardLeaderboard: finalWardLeaderboard,
         priorityStats,
       },
     });

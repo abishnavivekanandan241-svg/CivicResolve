@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { draftStatusUpdate } from '@/lib/gemini';
+import { translateCompleteIssue } from '@/lib/translation';
 
 const patchSchema = z.object({
   status: z.enum(['REPORTED', 'IN_PROGRESS', 'RESOLVED']).optional(),
@@ -60,13 +61,18 @@ export async function GET(
       return NextResponse.json({ error: 'Grievance not found' }, { status: 404 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const lang = searchParams.get('lang') || 'en';
+
     const enriched = {
       ...issue,
       hasUpvoted: user ? (issue as any).userUpvotes?.length > 0 : false,
       isSlaBreached: issue.status !== 'RESOLVED' && issue.slaDueAt ? new Date(issue.slaDueAt) < new Date() : false,
     };
 
-    return NextResponse.json({ success: true, issue: enriched });
+    const translatedIssue = await translateCompleteIssue(enriched, lang);
+
+    return NextResponse.json({ success: true, issue: translatedIssue });
   } catch (error) {
     console.error('Get issue error:', error);
     return NextResponse.json({ error: 'Failed to retrieve grievance' }, { status: 500 });

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { analyzeIssue, checkDuplicate } from '@/lib/gemini';
+import { batchTranslateIssues } from '@/lib/translation';
 import fs from 'fs';
 import path from 'path';
 
@@ -101,13 +102,17 @@ export async function GET(request: Request) {
       },
     });
 
+    const lang = searchParams.get('lang') || 'en';
+
     const enriched = issues.map((issue) => ({
       ...issue,
       hasUpvoted: user ? (issue as any).userUpvotes?.length > 0 : false,
       isSlaBreached: issue.status !== 'RESOLVED' && issue.slaDueAt ? new Date(issue.slaDueAt) < new Date() : false,
     }));
 
-    return NextResponse.json({ success: true, issues: enriched, count: enriched.length });
+    const translatedIssues = await batchTranslateIssues(enriched, lang);
+
+    return NextResponse.json({ success: true, issues: translatedIssues, count: translatedIssues.length });
   } catch (error) {
     console.error('Fetch issues error:', error);
     return NextResponse.json({ error: 'Failed to retrieve issues' }, { status: 500 });

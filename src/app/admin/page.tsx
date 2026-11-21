@@ -24,9 +24,11 @@ import {
   FileCheck,
   Check,
   ShieldAlert,
+  Globe,
 } from 'lucide-react';
 import { IssueData, BacklogSummary } from '@/lib/types';
 import { DEPARTMENTS, CATEGORIES } from '@/lib/gemini';
+import { useI18n, SUPPORTED_LANGUAGES } from '@/lib/i18n';
 
 const AdminOperationsMap = dynamic(
   () => import('@/components/Map/TransparencyHeatmap'),
@@ -34,6 +36,22 @@ const AdminOperationsMap = dynamic(
 );
 
 export default function AdminPage() {
+  const {
+    language,
+    adminLangMode,
+    setAdminLangMode,
+    t,
+    translateCategory,
+    translateDepartment,
+    translateStatus,
+    translatePriority,
+    formatDate,
+    formatNumber,
+  } = useI18n();
+
+  const effectiveAdminLang = adminLangMode === 'en' ? 'en' : language;
+  const currentLangObj = SUPPORTED_LANGUAGES.find((l: any) => l.code === language) || SUPPORTED_LANGUAGES[0];
+
   const [stats, setStats] = useState<any>(null);
   const [issues, setIssues] = useState<IssueData[]>([]);
   const [briefing, setBriefing] = useState<BacklogSummary | null>(null);
@@ -69,15 +87,15 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [effectiveAdminLang]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [statsRes, issuesRes, briefingRes] = await Promise.all([
-        fetch('/api/stats').then((r) => r.json()),
-        fetch('/api/issues').then((r) => r.json()),
-        fetch('/api/admin/briefing').then((r) => r.json()),
+        fetch(`/api/stats?lang=${effectiveAdminLang}`).then((r) => r.json()),
+        fetch(`/api/issues?lang=${effectiveAdminLang}`).then((r) => r.json()),
+        fetch(`/api/admin/briefing?lang=${effectiveAdminLang}`).then((r) => r.json()),
       ]);
 
       if (statsRes.stats) setStats(statsRes.stats);
@@ -230,72 +248,112 @@ export default function AdminPage() {
           </h1>
         </div>
 
-        {/* Tab switch */}
-        <div className="flex rounded border border-slate-300 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-900 shadow-xs self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('table')}
-            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
-              activeTab === 'table'
-                ? 'bg-blue-700 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-            }`}
-          >
-            Management Ledger ({filteredIssues.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('map')}
-            className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
-              activeTab === 'map'
-                ? 'bg-blue-700 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-            }`}
-          >
-            Incident Heatmap
-          </button>
+        {/* Header Right: Language Mode Toggle & View Switch */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Admin Language Toggle: Show in English / My Language */}
+          <div className="flex items-center rounded border border-slate-300 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-900 shadow-xs">
+            <button
+              onClick={() => setAdminLangMode('en')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded transition ${
+                adminLangMode === 'en'
+                  ? 'bg-blue-700 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              }`}
+            >
+              English (Official)
+            </button>
+            <button
+              onClick={() => setAdminLangMode('preferred')}
+              className={`px-2.5 py-1 text-xs font-semibold rounded transition flex items-center gap-1 ${
+                adminLangMode === 'preferred'
+                  ? 'bg-blue-700 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              }`}
+            >
+              <Globe className="w-3 h-3" />
+              <span>My Language ({currentLangObj.nativeName})</span>
+            </button>
+          </div>
+
+          {/* Tab switch */}
+          <div className="flex rounded border border-slate-300 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-900 shadow-xs">
+            <button
+              onClick={() => setActiveTab('table')}
+              className={`px-3 py-1 text-xs font-semibold rounded transition ${
+                activeTab === 'table'
+                  ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              }`}
+            >
+              Ledger ({filteredIssues.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('map')}
+              className={`px-3 py-1 text-xs font-semibold rounded transition ${
+                activeTab === 'map'
+                  ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              }`}
+            >
+              Heatmap
+            </button>
+          </div>
         </div>
       </div>
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Registered</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            {adminLangMode === 'preferred' ? t('statsTotalReported') : 'Total Registered'}
+          </span>
           <div className="text-xl font-bold text-slate-900 dark:text-white mt-0.5 font-mono">
-            {stats?.totalIssues ?? 40}
+            {formatNumber(stats?.totalIssues ?? 40)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Newly Reported</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+            {adminLangMode === 'preferred' ? translateStatus('REPORTED') : 'Newly Reported'}
+          </span>
           <div className="text-xl font-bold text-blue-700 dark:text-blue-400 mt-0.5 font-mono">
-            {stats?.reportedCount ?? 18}
+            {formatNumber(stats?.reportedCount ?? 18)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">In Progress</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+            {adminLangMode === 'preferred' ? translateStatus('IN_PROGRESS') : 'In Progress'}
+          </span>
           <div className="text-xl font-bold text-amber-700 dark:text-amber-400 mt-0.5 font-mono">
-            {stats?.inProgressCount ?? 14}
+            {formatNumber(stats?.inProgressCount ?? 14)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Certified Resolved</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            {adminLangMode === 'preferred' ? translateStatus('RESOLVED') : 'Certified Resolved'}
+          </span>
           <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-0.5 font-mono">
-            {stats?.resolvedCount ?? 8}
+            {formatNumber(stats?.resolvedCount ?? 8)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Critical Priority</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+            {adminLangMode === 'preferred' ? translatePriority('CRITICAL') : 'Critical Priority'}
+          </span>
           <div className="text-xl font-bold text-rose-700 dark:text-rose-400 mt-0.5 font-mono">
-            {stats?.criticalCount ?? 7}
+            {formatNumber(stats?.criticalCount ?? 7)}
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">SLA Overdue</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+            {adminLangMode === 'preferred' ? t('overdueSla') : 'SLA Overdue'}
+          </span>
           <div className="text-xl font-bold text-rose-700 dark:text-rose-400 mt-0.5 font-mono">
-            {stats?.slaBreachedCount ?? 5}
+            {formatNumber(stats?.slaBreachedCount ?? 5)}
           </div>
         </div>
       </div>
@@ -310,7 +368,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                  Daily Municipal Operations Memo
+                  {adminLangMode === 'preferred' ? t('dailyBriefingTitle') : 'Daily Municipal Operations Memo'}
                 </span>
                 <h2 className="text-sm font-bold text-white">
                   Field Backlog Status &amp; Dispatch Allocation
@@ -320,10 +378,10 @@ export default function AdminPage() {
 
             <div className="flex items-center gap-2">
               <span className="text-[11px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-semibold">
-                {briefing.criticalUrgentCount} Urgent Attention
+                {formatNumber(briefing.criticalUrgentCount)} {adminLangMode === 'preferred' ? t('urgentAttention') : 'Urgent Attention'}
               </span>
               <span className="text-[11px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-semibold">
-                {briefing.slaBreachedCount} Overdue SLA
+                {formatNumber(briefing.slaBreachedCount)} {adminLangMode === 'preferred' ? t('overdueSla') : 'Overdue SLA'}
               </span>
             </div>
           </div>
@@ -343,7 +401,7 @@ export default function AdminPage() {
                   <div key={idx} className="text-xs bg-slate-900/60 p-2 rounded border border-slate-700/40">
                     <div className="font-semibold text-white flex items-center justify-between">
                       <span>{c.title}</span>
-                      <span className="text-amber-400 font-mono text-[11px]">{c.count} complaints</span>
+                      <span className="text-amber-400 font-mono text-[11px]">{formatNumber(c.count)} complaints</span>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-0.5">{c.description}</p>
                   </div>
@@ -372,7 +430,16 @@ export default function AdminPage() {
       )}
 
       {/* Main Tab Content */}
-      {activeTab === 'map' ? (
+      {loading ? (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-8 space-y-3">
+          <div className="space-y-2.5">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-5 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-500 pt-2">{t('loadingDocket')}</p>
+        </div>
+      ) : activeTab === 'map' ? (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 space-y-3">
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -410,9 +477,9 @@ export default function AdminPage() {
                 className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
               >
                 <option value="ALL">All Statuses</option>
-                <option value="REPORTED">Reported</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
+                <option value="REPORTED">{adminLangMode === 'preferred' ? translateStatus('REPORTED') : 'Reported'}</option>
+                <option value="IN_PROGRESS">{adminLangMode === 'preferred' ? translateStatus('IN_PROGRESS') : 'In Progress'}</option>
+                <option value="RESOLVED">{adminLangMode === 'preferred' ? translateStatus('RESOLVED') : 'Resolved'}</option>
               </select>
 
               <select
@@ -421,10 +488,10 @@ export default function AdminPage() {
                 className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
               >
                 <option value="ALL">All Priorities</option>
-                <option value="CRITICAL">Critical</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
+                <option value="CRITICAL">{adminLangMode === 'preferred' ? translatePriority('CRITICAL') : 'Critical'}</option>
+                <option value="HIGH">{adminLangMode === 'preferred' ? translatePriority('HIGH') : 'High'}</option>
+                <option value="MEDIUM">{adminLangMode === 'preferred' ? translatePriority('MEDIUM') : 'Medium'}</option>
+                <option value="LOW">{adminLangMode === 'preferred' ? translatePriority('LOW') : 'Low'}</option>
               </select>
 
               <select
@@ -435,7 +502,7 @@ export default function AdminPage() {
                 <option value="ALL">All Departments</option>
                 {DEPARTMENTS.map((dept) => (
                   <option key={dept} value={dept}>
-                    {dept}
+                    {adminLangMode === 'preferred' ? translateDepartment(dept) : dept}
                   </option>
                 ))}
               </select>
@@ -448,13 +515,13 @@ export default function AdminPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 uppercase tracking-wider text-[10px] font-semibold border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="px-3.5 py-2.5">Tracking ID</th>
-                    <th className="px-3.5 py-2.5">Priority</th>
-                    <th className="px-3.5 py-2.5">Grievance Subject</th>
-                    <th className="px-3.5 py-2.5">Ward &amp; Street</th>
-                    <th className="px-3.5 py-2.5">Assigned Unit</th>
-                    <th className="px-3.5 py-2.5">Status</th>
-                    <th className="px-3.5 py-2.5 text-right">Triage</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('trackingId') : 'Tracking ID'}</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('priority') : 'Priority'}</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('grievanceSubject') : 'Grievance Subject'}</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('ward') : 'Ward & Street'}</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('assignedDept') : 'Assigned Unit'}</th>
+                    <th className="px-3.5 py-2.5">{adminLangMode === 'preferred' ? t('status') : 'Status'}</th>
+                    <th className="px-3.5 py-2.5 text-right">{adminLangMode === 'preferred' ? t('inspect') : 'Triage'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -485,7 +552,7 @@ export default function AdminPage() {
                               : 'chip-low'
                           }`}
                         >
-                          {issue.priority} ({issue.priorityScore})
+                          {adminLangMode === 'preferred' ? translatePriority(issue.priority) : issue.priority} ({issue.priorityScore})
                         </span>
                       </td>
 
@@ -506,7 +573,9 @@ export default function AdminPage() {
                       </td>
 
                       <td className="px-3.5 py-3 text-slate-600 dark:text-slate-300">
-                        <div className="font-medium">{issue.department}</div>
+                        <div className="font-medium">
+                          {adminLangMode === 'preferred' ? translateDepartment(issue.department) : issue.department}
+                        </div>
                         <div className="text-[10px] text-slate-400 truncate max-w-[130px]">
                           {issue.assignedOfficer || 'Pending Crew'}
                         </div>
@@ -522,7 +591,7 @@ export default function AdminPage() {
                               : 'chip-reported'
                           }`}
                         >
-                          {issue.status}
+                          {adminLangMode === 'preferred' ? translateStatus(issue.status) : issue.status}
                         </span>
                         {issue.isSlaBreached && (
                           <span className="block text-[9px] text-rose-600 font-semibold mt-0.5">
@@ -532,7 +601,7 @@ export default function AdminPage() {
                       </td>
 
                       <td className="px-3.5 py-3 text-right font-semibold text-blue-700 dark:text-blue-400">
-                        Inspect →
+                        {adminLangMode === 'preferred' ? t('inspect') : 'Inspect →'}
                       </td>
                     </tr>
                   ))}
@@ -565,7 +634,7 @@ export default function AdminPage() {
                         : 'chip-low'
                     }`}
                   >
-                    Impact Score {selectedIssue.priorityScore}
+                    Score {selectedIssue.priorityScore}
                   </span>
                 </div>
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white mt-1 line-clamp-1">
@@ -600,7 +669,7 @@ export default function AdminPage() {
                           : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                       }`}
                     >
-                      {st.replace('_', ' ')}
+                      {adminLangMode === 'preferred' ? translateStatus(st) : st.replace('_', ' ')}
                     </button>
                   ))}
                 </div>
@@ -653,7 +722,7 @@ export default function AdminPage() {
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>
-                          {c}
+                          {adminLangMode === 'preferred' ? translateCategory(c) : c}
                         </option>
                       ))}
                     </select>
@@ -670,7 +739,7 @@ export default function AdminPage() {
                     >
                       {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
                         <option key={p} value={p}>
-                          {p}
+                          {adminLangMode === 'preferred' ? translatePriority(p) : p}
                         </option>
                       ))}
                     </select>
@@ -687,7 +756,7 @@ export default function AdminPage() {
                     >
                       {DEPARTMENTS.map((d) => (
                         <option key={d} value={d}>
-                          {d}
+                          {adminLangMode === 'preferred' ? translateDepartment(d) : d}
                         </option>
                       ))}
                     </select>

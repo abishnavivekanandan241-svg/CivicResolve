@@ -226,10 +226,10 @@ export function Navbar() {
             <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>
               {isRoleSwitching
-                ? 'Updating...'
+                ? '...'
                 : currentUser?.role === 'ADMIN'
-                  ? 'Official Console'
-                  : 'Citizen Mode'}
+                  ? t('officialConsole')
+                  : t('citizenRole')}
             </span>
           </button>
 

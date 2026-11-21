@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { analyzeIssue } from '@/lib/gemini';
+import { analyzeIssue, translateContent } from '@/lib/gemini';
 
 const analyzeSchema = z.object({
   title: z.string().optional().default(''),
   description: z.string().min(3, 'Description must be at least 3 characters'),
   location: z.string().optional().default(''),
   imageBase64: z.string().optional(),
+  lang: z.string().optional().default('en'),
 });
 
 export async function POST(request: Request) {
@@ -21,13 +22,47 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, location, imageBase64 } = parsed.data;
+    const { title, description, location, imageBase64, lang } = parsed.data;
     const result = await analyzeIssue({
       title,
       description,
       location,
       imageBase64,
     });
+
+    const normLang = (lang || 'en').toLowerCase().trim();
+    if (normLang !== 'en') {
+      try {
+        const toTranslate: Record<string, string> = {};
+        if (result.suggestedTitle) toTranslate.suggestedTitle = result.suggestedTitle;
+        if (result.reasoning) toTranslate.reasoning = result.reasoning;
+        if (result.category) toTranslate.category = result.category;
+        if (result.department) toTranslate.department = result.department;
+
+        if (Array.isArray(result.priorityFactors)) {
+          result.priorityFactors.forEach((f, idx) => {
+            if (f.factor) toTranslate[`f_title_${idx}`] = f.factor;
+            if (f.explanation) toTranslate[`f_expl_${idx}`] = f.explanation;
+          });
+        }
+
+        const translated = await translateContent(toTranslate, normLang);
+        if (translated.suggestedTitle) result.suggestedTitle = translated.suggestedTitle;
+        if (translated.reasoning) result.reasoning = translated.reasoning;
+        if (translated.category) result.category = translated.category;
+        if (translated.department) result.department = translated.department;
+
+        if (Array.isArray(result.priorityFactors)) {
+          result.priorityFactors = result.priorityFactors.map((f, idx) => ({
+            ...f,
+            factor: translated[`f_title_${idx}`] || f.factor,
+            explanation: translated[`f_expl_${idx}`] || f.explanation,
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to translate analysis output:', err);
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -41,4 +76,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 

@@ -18,7 +18,16 @@ import { IssueData } from '@/lib/types';
 
 export default function MyIssuesPage() {
   const router = useRouter();
-  const { t } = useI18n();
+  const {
+    language,
+    t,
+    translateCategory,
+    translateDepartment,
+    translateStatus,
+    translatePriority,
+    formatDate,
+    formatNumber,
+  } = useI18n();
 
   const [issues, setIssues] = useState<IssueData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,13 +40,14 @@ export default function MyIssuesPage() {
 
   useEffect(() => {
     fetchIssues();
-  }, [statusFilter, categoryFilter]);
+  }, [statusFilter, categoryFilter, language]);
 
   const fetchIssues = () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (statusFilter !== 'ALL') params.append('status', statusFilter);
     if (categoryFilter !== 'ALL') params.append('category', categoryFilter);
+    if (language) params.append('lang', language);
 
     fetch(`/api/issues?${params.toString()}`)
       .then((res) => res.json())
@@ -59,20 +69,32 @@ export default function MyIssuesPage() {
     );
   });
 
+  const CATEGORY_KEYS = [
+    'Pothole',
+    'Garbage Overflow',
+    'Streetlight',
+    'Water Leakage',
+    'Road Damage',
+    'Drainage Blockage',
+    'Fallen Tree',
+    'Stray Animals',
+    'Noise/Other',
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            Official Municipal Records
+            {t('officialPortal')}
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-blue-700 dark:text-blue-400" />
-            <span>Public Grievance Registry &amp; Dispatch Ledger</span>
+            <span>{t('publicLedgerTitle')}</span>
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-            Real-time audit log of civic complaints, statutory SLA targets, and field resolution certificates across Erode.
+            {t('publicLedgerSubtitle')}
           </p>
         </div>
 
@@ -81,7 +103,7 @@ export default function MyIssuesPage() {
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs transition self-start sm:self-auto shadow-xs"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>File New Grievance</span>
+          <span>{t('fileGrievanceBtn')}</span>
         </Link>
       </div>
 
@@ -94,7 +116,7 @@ export default function MyIssuesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by ID, title, street or ward..."
+            placeholder={t('searchPlaceholder')}
             className="w-full pl-9 pr-3 py-1.5 rounded border border-slate-300 dark:border-slate-700 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-600"
           />
         </div>
@@ -107,10 +129,10 @@ export default function MyIssuesPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
           >
-            <option value="ALL">All Statuses</option>
-            <option value="REPORTED">Reported</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="RESOLVED">Resolved</option>
+            <option value="ALL">{t('allStatuses')}</option>
+            <option value="REPORTED">{translateStatus('REPORTED')}</option>
+            <option value="IN_PROGRESS">{translateStatus('IN_PROGRESS')}</option>
+            <option value="RESOLVED">{translateStatus('RESOLVED')}</option>
           </select>
 
           {/* Category Filter */}
@@ -119,37 +141,35 @@ export default function MyIssuesPage() {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-slate-800 dark:text-slate-200"
           >
-            <option value="ALL">All Categories</option>
-            <option value="Pothole">Pothole</option>
-            <option value="Garbage Overflow">Garbage Overflow</option>
-            <option value="Streetlight">Streetlight</option>
-            <option value="Water Leakage">Water Leakage</option>
-            <option value="Road Damage">Road Damage</option>
-            <option value="Drainage Blockage">Drainage Blockage</option>
-            <option value="Fallen Tree">Fallen Tree</option>
-            <option value="Stray Animals">Stray Animals</option>
-            <option value="Noise/Other">Noise / Other</option>
+            <option value="ALL">{t('allCategories')}</option>
+            {CATEGORY_KEYS.map((catKey) => (
+              <option key={catKey} value={catKey}>
+                {translateCategory(catKey)}
+              </option>
+            ))}
           </select>
 
           {/* View Toggle */}
           <div className="flex rounded border border-slate-300 dark:border-slate-700 p-0.5 bg-slate-50 dark:bg-slate-800">
             <button
               onClick={() => setViewMode('table')}
-              className={`px-2.5 py-1 text-xs font-semibold rounded transition ${viewMode === 'table'
+              className={`px-2.5 py-1 text-xs font-semibold rounded transition ${
+                viewMode === 'table'
                   ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900'
-                }`}
+              }`}
             >
-              Table View
+              {t('tableView')}
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`px-2.5 py-1 text-xs font-semibold rounded transition ${viewMode === 'grid'
+              className={`px-2.5 py-1 text-xs font-semibold rounded transition ${
+                viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900'
-                }`}
+              }`}
             >
-              Cards
+              {t('cardView')}
             </button>
           </div>
         </div>
@@ -157,16 +177,27 @@ export default function MyIssuesPage() {
 
       {/* Content Rendering */}
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <div className="w-6 h-6 border-2 border-blue-700 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-500">Querying municipal grievance database...</p>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-6 space-y-4">
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 animate-pulse">
+                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 flex-1 bg-slate-100 dark:bg-slate-800/60 rounded" />
+                <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-500 pt-2">{t('loadingDocket')}</p>
         </div>
       ) : filteredIssues.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-10 text-center space-y-3">
           <Layers className="w-8 h-8 text-slate-400 mx-auto" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">No records matching query</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            {t('noIssuesFound')}
+          </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try resetting your search filters or file a new infrastructure grievance.
+            {t('publicLedgerSubtitle')}
           </p>
         </div>
       ) : viewMode === 'table' ? (
@@ -176,14 +207,14 @@ export default function MyIssuesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 uppercase tracking-wider text-[10px] font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-3.5 py-2.5">Tracking ID</th>
-                  <th className="px-3.5 py-2.5">Grievance Subject</th>
-                  <th className="px-3.5 py-2.5">Category</th>
-                  <th className="px-3.5 py-2.5">Ward</th>
-                  <th className="px-3.5 py-2.5">Assigned Department</th>
-                  <th className="px-3.5 py-2.5">Priority</th>
-                  <th className="px-3.5 py-2.5">Status</th>
-                  <th className="px-3.5 py-2.5 text-right">Audit</th>
+                  <th className="px-3.5 py-2.5">{t('trackingId')}</th>
+                  <th className="px-3.5 py-2.5">{t('grievanceSubject')}</th>
+                  <th className="px-3.5 py-2.5">{t('category')}</th>
+                  <th className="px-3.5 py-2.5">{t('ward')}</th>
+                  <th className="px-3.5 py-2.5">{t('assignedDept')}</th>
+                  <th className="px-3.5 py-2.5">{t('priority')}</th>
+                  <th className="px-3.5 py-2.5">{t('status')}</th>
+                  <th className="px-3.5 py-2.5 text-right">{t('inspect')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -200,42 +231,44 @@ export default function MyIssuesPage() {
                       {issue.title}
                     </td>
                     <td className="px-3.5 py-3 text-slate-600 dark:text-slate-300">
-                      {issue.category}
+                      {translateCategory(issue.category)}
                     </td>
                     <td className="px-3.5 py-3 text-slate-500 truncate max-w-[130px]">
                       {issue.ward}
                     </td>
                     <td className="px-3.5 py-3 text-slate-600 dark:text-slate-300">
-                      {issue.department}
+                      {translateDepartment(issue.department)}
                     </td>
                     <td className="px-3.5 py-3">
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded ${issue.priority === 'CRITICAL'
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                          issue.priority === 'CRITICAL'
                             ? 'chip-critical'
                             : issue.priority === 'HIGH'
-                              ? 'chip-high'
-                              : issue.priority === 'MEDIUM'
-                                ? 'chip-medium'
-                                : 'chip-low'
-                          }`}
+                            ? 'chip-high'
+                            : issue.priority === 'MEDIUM'
+                            ? 'chip-medium'
+                            : 'chip-low'
+                        }`}
                       >
-                        {issue.priority}
+                        {translatePriority(issue.priority)}
                       </span>
                     </td>
                     <td className="px-3.5 py-3">
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded ${issue.status === 'RESOLVED'
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                          issue.status === 'RESOLVED'
                             ? 'chip-resolved'
                             : issue.status === 'IN_PROGRESS'
-                              ? 'chip-in_progress'
-                              : 'chip-reported'
-                          }`}
+                            ? 'chip-in_progress'
+                            : 'chip-reported'
+                        }`}
                       >
-                        {issue.status}
+                        {translateStatus(issue.status)}
                       </span>
                     </td>
                     <td className="px-3.5 py-3 text-right font-semibold text-blue-700 dark:text-blue-400">
-                      Inspect →
+                      {t('inspect')}
                     </td>
                   </tr>
                 ))}
@@ -259,26 +292,28 @@ export default function MyIssuesPage() {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded ${issue.status === 'RESOLVED'
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                        issue.status === 'RESOLVED'
                           ? 'chip-resolved'
                           : issue.status === 'IN_PROGRESS'
-                            ? 'chip-in_progress'
-                            : 'chip-reported'
-                        }`}
+                          ? 'chip-in_progress'
+                          : 'chip-reported'
+                      }`}
                     >
-                      {issue.status}
+                      {translateStatus(issue.status)}
                     </span>
                     <span
-                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${issue.priority === 'CRITICAL'
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        issue.priority === 'CRITICAL'
                           ? 'chip-critical'
                           : issue.priority === 'HIGH'
-                            ? 'chip-high'
-                            : issue.priority === 'MEDIUM'
-                              ? 'chip-medium'
-                              : 'chip-low'
-                        }`}
+                          ? 'chip-high'
+                          : issue.priority === 'MEDIUM'
+                          ? 'chip-medium'
+                          : 'chip-low'
+                      }`}
                     >
-                      {issue.priority}
+                      {translatePriority(issue.priority)}
                     </span>
                   </div>
                 </div>
@@ -294,7 +329,7 @@ export default function MyIssuesPage() {
 
                 {issue.detectedLanguage && issue.detectedLanguage !== 'English' && (
                   <div className="text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded line-clamp-1 border border-slate-200 dark:border-slate-700">
-                    Source: {issue.detectedScript || issue.detectedLanguage}
+                    {t('originalStatement')}: {issue.detectedScript || issue.detectedLanguage}
                   </div>
                 )}
               </div>
@@ -308,7 +343,7 @@ export default function MyIssuesPage() {
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1 font-mono font-medium text-slate-600 dark:text-slate-300">
                     <ThumbsUp className="w-3 h-3" />
-                    <span>{issue.upvotes}</span>
+                    <span>{formatNumber(issue.upvotes || 0)}</span>
                   </span>
                   <span className="text-blue-700 dark:text-blue-400 font-semibold group-hover:translate-x-0.5 transition-transform">
                     →

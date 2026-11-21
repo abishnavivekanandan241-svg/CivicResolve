@@ -37,7 +37,7 @@ const LocationPickerMap = dynamic(
 
 export default function ReportPage() {
   const router = useRouter();
-  const { t } = useI18n();
+  const { language, t, translateCategory, translateDepartment, translateStatus, translatePriority } = useI18n();
 
   // Wizard Step: 1 = Details, 2 = AI Triage Review, 3 = Acknowledgement
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -201,6 +201,7 @@ export default function ReportPage() {
           description,
           location: locationText,
           imageBase64: imageBase64?.startsWith('data:') ? imageBase64 : undefined,
+          lang: language,
         }),
       });
 
@@ -444,7 +445,7 @@ export default function ReportPage() {
                   <option value="Let AI decide">Auto-Detect via AI (Recommended)</option>
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat}
+                      {translateCategory(cat)}
                     </option>
                   ))}
                 </select>
@@ -621,7 +622,7 @@ export default function ReportPage() {
                           : 'chip-low'
                       }`}
                     >
-                      {analysisResult.priority} PRIORITY
+                      {translatePriority(analysisResult.priority)} PRIORITY
                     </span>
 
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 rounded">
@@ -639,11 +640,11 @@ export default function ReportPage() {
               <div className="flex flex-col sm:items-end text-xs">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
                   <Building className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-                  <span>{analysisResult.department}</span>
+                  <span>{translateDepartment(analysisResult.department)}</span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                   <Clock className="w-3 h-3" />
-                  <span>Category: {analysisResult.category}</span>
+                  <span>Category: {translateCategory(analysisResult.category)}</span>
                 </div>
               </div>
             </div>

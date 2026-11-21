@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { generateFormalComplaint } from '@/lib/gemini';
+import { getOrTranslateEntityFields } from '@/lib/translation';
 
 export async function POST(
   request: Request,
@@ -10,6 +11,9 @@ export async function POST(
   try {
     const { id } = await props.params;
     const user = await getCurrentUser();
+    const { searchParams } = new URL(request.url);
+    const body = await request.json().catch(() => ({}));
+    const lang = (searchParams.get('lang') || body?.lang || 'en').toLowerCase().trim();
 
     const issue = await prisma.issue.findFirst({
       where: { OR: [{ id }, { trackingId: id }] },
@@ -24,7 +28,7 @@ export async function POST(
       return NextResponse.json({ error: 'Grievance not found' }, { status: 404 });
     }
 
-    const letter = await generateFormalComplaint({
+    const baseLetter = await generateFormalComplaint({
       trackingId: issue.trackingId,
       title: issue.title,
       description: issue.description,
@@ -37,9 +41,20 @@ export async function POST(
       priority: issue.priority,
     });
 
+    let finalLetter = baseLetter;
+    if (lang !== 'en') {
+      const translated = await getOrTranslateEntityFields({
+        entityType: 'ComplaintLetter',
+        entityId: issue.id,
+        fields: { letter: baseLetter },
+        targetLang: lang,
+      });
+      if (translated.letter) finalLetter = translated.letter;
+    }
+
     return NextResponse.json({
       success: true,
-      letter,
+      letter: finalLetter,
       trackingId: issue.trackingId,
     });
   } catch (error) {

@@ -892,3 +892,87 @@ Return JSON:
   );
 }
 
+
+// -------------------------------------------------------------
+// 9. Multilingual Batch Content Translation Layer
+// -------------------------------------------------------------
+const INDIAN_LANG_NAMES: Record<string, string> = {
+  hi: 'Hindi (हिन्दी)',
+  ta: 'Tamil (தமிழ்)',
+  te: 'Telugu (తెలుగు)',
+  kn: 'Kannada (ಕನ್ನಡ)',
+  ml: 'Malayalam (മലയാളം)',
+  mr: 'Marathi (मराठी)',
+  bn: 'Bengali (বাংলা)',
+  gu: 'Gujarati (ગુજરાતી)',
+  pa: 'Punjabi (ਪੰਜਾਬੀ)',
+  ur: 'Urdu (اردو)',
+  en: 'English',
+};
+
+export async function translateContent(
+  texts: Record<string, string>,
+  targetLang: string
+): Promise<Record<string, string>> {
+  const normLang = (targetLang || 'en').toLowerCase().trim();
+  if (normLang === 'en' || !texts || Object.keys(texts).length === 0) {
+    return { ...texts };
+  }
+
+  const langFullName = INDIAN_LANG_NAMES[normLang] || targetLang;
+
+  // Filter out empty strings
+  const keysToTranslate = Object.keys(texts).filter(
+    (k) => typeof texts[k] === 'string' && texts[k].trim().length > 0
+  );
+
+  if (keysToTranslate.length === 0) {
+    return { ...texts };
+  }
+
+  const inputPayload: Record<string, string> = {};
+  for (const k of keysToTranslate) {
+    inputPayload[k] = texts[k];
+  }
+
+  const fallback = () => ({ ...texts });
+
+  return callGeminiWithRetry(
+    async (ai) => {
+      const prompt = `You are an expert Indian government administrative translator.
+Translate each text value in the following JSON into ${langFullName}.
+
+CRITICAL RULES:
+1. Return a JSON object with the EXACT SAME keys as the input.
+2. Translate naturally, respectfully, and officially into ${langFullName}.
+3. DO NOT alter or translate tracking IDs (e.g. CR-2026-xxxxx), URLs, email addresses, or reference codes.
+4. Keep specific street names and geographical places transliterated accurately (e.g. Erode, Perundurai Road, Brough Road, Manikoondu, Chithode, Bhavani, Surampatti, Thindal).
+5. Preserve formatting, numbers, and percentage signs (% intact).
+6. Return ONLY a valid JSON object matching the input structure.
+
+INPUT JSON:
+${JSON.stringify(inputPayload, null, 2)}`;
+
+      const res = await ai.models.generateContent({
+        model: getModelName(),
+        contents: [prompt],
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+        },
+      });
+
+      const raw = res.text?.trim() || '{}';
+      const parsed = JSON.parse(raw);
+
+      const result: Record<string, string> = { ...texts };
+      for (const k of keysToTranslate) {
+        if (typeof parsed[k] === 'string' && parsed[k].trim()) {
+          result[k] = parsed[k].trim();
+        }
+      }
+      return result;
+    },
+    fallback
+  );
+}

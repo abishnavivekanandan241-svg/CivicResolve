@@ -99,3 +99,17 @@ model Department {
   contactEmail    String?
 }
 
+model Translation {
+  id         String   @id @default(cuid())
+  entityType String   // "Issue" | "StatusEvent" | "Department"
+  entityId   String   // record id
+  field      String   // e.g. "title", "description", "aiSummary", "aiReasoning", "priorityFactors", etc.
+  lang       String   // "hi", "ta", "te", "kn", "ml", "mr", "bn", "gu", "pa", "ur"
+  text       String
+  sourceHash String
+  createdAt  DateTime @default(now())
+
+  @@unique([entityType, entityId, field, lang])
+  @@index([entityType, entityId, lang])
+}
+

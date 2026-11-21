@@ -28,7 +28,16 @@ const TransparencyHeatmap = dynamic(
 
 export default function HomePage() {
   const router = useRouter();
-  const { t } = useI18n();
+  const {
+    language,
+    t,
+    translateCategory,
+    translateDepartment,
+    translateStatus,
+    translatePriority,
+    formatNumber,
+    formatDate,
+  } = useI18n();
 
   const [trackingQuery, setTrackingQuery] = useState('');
   const [stats, setStats] = useState<any>(null);
@@ -37,9 +46,10 @@ export default function HomePage() {
 
   // Load stats and issues
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      fetch('/api/stats').then((r) => r.json()),
-      fetch('/api/issues').then((r) => r.json()),
+      fetch(`/api/stats?lang=${language}`).then((r) => r.json()),
+      fetch(`/api/issues?lang=${language}`).then((r) => r.json()),
     ])
       .then(([statsData, issuesData]) => {
         if (statsData.stats) setStats(statsData.stats);
@@ -47,7 +57,7 @@ export default function HomePage() {
       })
       .catch((err) => console.error('Failed to load landing data:', err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   const handleTrackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,17 +77,17 @@ export default function HomePage() {
             {/* Classification Chip */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-              <span>Public Service Portal • Citizen Charter SLA Standards</span>
+              <span>{t('officialPortal')} • {t('slaCharter')}</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-3xl sm:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-              Municipal Grievance Redressal &amp; Infrastructure Services
+              {t('heroTitle')}
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Official digital system for Erode City Municipal Corporation. Lodge civic issues in any Indian language or voice dictation, track time-bound statutory SLAs, and verify field inspection records.
+              {t('heroSubtitle')}
             </p>
 
             {/* Track-by-ID Input & Direct Action Buttons */}
@@ -93,14 +103,14 @@ export default function HomePage() {
                   type="text"
                   value={trackingQuery}
                   onChange={(e) => setTrackingQuery(e.target.value)}
-                  placeholder="Enter Grievance Tracking ID (e.g., CR-2026-00101)"
+                  placeholder={t('trackPlaceholder')}
                   className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-mono uppercase"
                 />
                 <button
                   type="submit"
                   className="px-4 py-2 rounded bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs sm:text-sm transition"
                 >
-                  Track Status
+                  {t('trackBtn')}
                 </button>
               </form>
 
@@ -110,7 +120,7 @@ export default function HomePage() {
                   href="/report"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-semibold transition shadow-xs"
                 >
-                  <span>File a Grievance</span>
+                  <span>{t('reportIssueBtn')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
@@ -119,7 +129,7 @@ export default function HomePage() {
                   className="flex items-center gap-2 px-4 py-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
                 >
                   <MapPin className="w-4 h-4 text-slate-500" />
-                  <span>Ward Scoreboard &amp; Map</span>
+                  <span>{t('transparencyMapBtn')}</span>
                 </Link>
 
                 <Link
@@ -127,7 +137,7 @@ export default function HomePage() {
                   className="flex items-center gap-2 px-4 py-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
                 >
                   <FileCheck2 className="w-4 h-4 text-slate-500" />
-                  <span>Public Grievance Ledger</span>
+                  <span>{t('myIssuesBtn')}</span>
                 </Link>
               </div>
             </div>
@@ -144,7 +154,7 @@ export default function HomePage() {
               <Layers className="w-4 h-4 text-slate-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
-              {stats?.totalIssues ?? 40}
+              {formatNumber(stats?.totalIssues ?? 40)}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">Across 6 Corporation Wards</p>
           </div>
@@ -155,9 +165,9 @@ export default function HomePage() {
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-emerald-700 dark:text-emerald-400 font-mono">
-              {stats?.resolvedPercentage ?? 20}%
+              {formatNumber(stats?.resolvedPercentage ?? 20)}%
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">{stats?.resolvedCount ?? 8} inspected &amp; certified</p>
+            <p className="text-[11px] text-slate-500 mt-1">{formatNumber(stats?.resolvedCount ?? 8)} inspected &amp; certified</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
@@ -166,18 +176,18 @@ export default function HomePage() {
               <Clock className="w-4 h-4 text-slate-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
-              {stats?.avgResolutionHours ?? 18} <span className="text-xs font-normal text-slate-500">{t('statsHours')}</span>
+              {formatNumber(stats?.avgResolutionHours ?? 18)} <span className="text-xs font-normal text-slate-500">{t('statsHours')}</span>
             </div>
             <p className="text-[11px] text-slate-500 mt-1">Intake to field completion</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4">
             <div className="flex items-center justify-between text-slate-500 mb-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Critical Priority</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">{translatePriority('CRITICAL')}</span>
               <AlertTriangle className="w-4 h-4 text-rose-600" />
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-rose-700 dark:text-rose-400 font-mono">
-              {stats?.criticalCount ?? 7}
+              {formatNumber(stats?.criticalCount ?? 7)}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">High public-risk alerts</p>
           </div>
@@ -191,10 +201,10 @@ export default function HomePage() {
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-                <span>Geospatial Incident Distribution — Erode City</span>
+                <span>{t('geospatialHeatmapTitle')}</span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Ward-level infrastructure grievances color-coded by lifecycle stage.
+                {t('geospatialHeatmapSubtitle')}
               </p>
             </div>
 
@@ -202,7 +212,7 @@ export default function HomePage() {
               href="/transparency"
               className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
             >
-              <span>View Full Ward Scoreboard</span>
+              <span>{t('viewRegistry')}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -231,7 +241,7 @@ export default function HomePage() {
                 href="/transparency"
                 className="text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-0.5"
               >
-                <span>View Full Registry</span>
+                <span>{t('viewRegistry')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -262,7 +272,7 @@ export default function HomePage() {
                         className="w-full h-full object-cover"
                       />
                       <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-emerald-700/90 text-white text-[9px] font-semibold tracking-wider uppercase">
-                        Resolved
+                        {translateStatus('RESOLVED')}
                       </span>
                     </div>
 
@@ -294,14 +304,14 @@ export default function HomePage() {
 
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                       <span className="font-medium text-slate-600 dark:text-slate-400">
-                        {issue.department}
+                        {translateDepartment(issue.department)}
                       </span>
                       <Link
                         href={`/issues/${issue.id}`}
                         className="font-semibold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-0.5"
                       >
-                        <span>View Audit</span>
-                        <ChevronRight className="w-3 h-3" />
+                        <span>{t('inspect')}</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
