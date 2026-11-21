@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <rect width="600" height="400" fill="#334155"/>
+  <rect x="150" y="220" width="300" height="80" rx="4" fill="#0f172a"/>
+  <!-- Clean storm drain grating with free-flowing clean water below -->
+  <line x1="180" y1="220" x2="180" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="220" y1="220" x2="220" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="260" y1="220" x2="260" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="300" y1="220" x2="300" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="340" y1="220" x2="340" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="380" y1="220" x2="380" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <line x1="420" y1="220" x2="420" y2="300" stroke="#94a3b8" stroke-width="8"/>
+  <rect x="20" y="20" width="230" height="40" rx="8" fill="#10b981" opacity="0.9"/>
+  <text x="30" y="46" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffffff">DE-SILTED &amp; CLEARED</text>
+  <text x="30" y="380" font-family="sans-serif" font-size="14" fill="#94a3b8">Drainage Maintenance Team • Flow Restored</text>
+</svg>

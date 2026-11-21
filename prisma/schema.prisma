@@ -1,0 +1,101 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  role         String        @default("CITIZEN") // CITIZEN | ADMIN
+  createdAt    DateTime      @default(now())
+  issues       Issue[]       @relation("ReportedIssues")
+  upvotes      Upvote[]
+  statusEvents StatusEvent[]
+}
+
+model Issue {
+  id                     String        @id @default(cuid())
+  trackingId             String        @unique // e.g. CR-2026-00123
+  title                  String
+  description            String
+  category               String
+  subcategory            String?
+  locationText           String
+  lat                    Float
+  lng                    Float
+  ward                   String
+  imageUrl               String?
+  status                 String        @default("REPORTED") // REPORTED | IN_PROGRESS | RESOLVED
+  priority               String        @default("MEDIUM")   // CRITICAL | HIGH | MEDIUM | LOW
+  priorityScore          Int           @default(50)         // 0 - 100
+  priorityFactors        String?                            // JSON array string of factors
+  department             String
+  aiSummary              String?
+  aiReasoning            String?
+  aiConfidence           Float?
+  safetyRisk             Boolean       @default(false)
+  detectedLanguage       String?
+  detectedScript         String?
+  isRomanizedIndic       Boolean       @default(false)
+  originalText           String?
+  englishTranslation     String?
+  preferredReplyLanguage String?
+  duplicateOfId          String?
+  duplicateOf            Issue?        @relation("Duplicates", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates             Issue[]       @relation("Duplicates")
+  upvotes                Int           @default(0)
+  slaDueAt               DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  resolvedAt             DateTime?
+  reporterId             String?
+  reporter               User?         @relation("ReportedIssues", fields: [reporterId], references: [id], onDelete: SetNull)
+  resolutionImageUrl     String?
+  resolutionVerified     Boolean       @default(false)
+  resolutionConfidence   Float?
+  resolutionNote         String?
+  assignedOfficer        String?
+  isAiAnalyzed           Boolean       @default(true)
+  isHumanOverridden      Boolean       @default(false)
+
+  statusEvents           StatusEvent[]
+  userUpvotes            Upvote[]
+}
+
+model StatusEvent {
+  id         String   @id @default(cuid())
+  issueId    String
+  issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  fromStatus String
+  toStatus   String
+  note       String?
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+}
+
+model Upvote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, issueId])
+}
+
+model Department {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  slaHours        Int      @default(48)
+  description     String?
+  officerInCharge String?
+  contactEmail    String?
+}
+
