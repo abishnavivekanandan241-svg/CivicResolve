@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { analyzeIssue, translateContent } from '@/lib/gemini';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const analyzeSchema = z.object({
   title: z.string().optional().default(''),
@@ -12,6 +13,17 @@ const analyzeSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rateCheck = checkRateLimit(ip, 'analyze', 15, 60000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded. Please wait ${rateCheck.retryAfterSec} seconds before analyzing another grievance.`,
+        },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfterSec) } }
+      );
+    }
+
     const json = await request.json();
     const parsed = analyzeSchema.safeParse(json);
 

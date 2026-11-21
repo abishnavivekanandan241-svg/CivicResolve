@@ -3,12 +3,24 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { generateFormalComplaint } from '@/lib/gemini';
 import { getOrTranslateEntityFields } from '@/lib/translation';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(
   request: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const ip = getClientIp(request);
+    const rateCheck = checkRateLimit(ip, 'complaint-letter', 10, 60000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Letter generation limit reached. Please wait ${rateCheck.retryAfterSec} seconds before generating another petition.`,
+        },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfterSec) } }
+      );
+    }
+
     const { id } = await props.params;
     const user = await getCurrentUser();
     const { searchParams } = new URL(request.url);

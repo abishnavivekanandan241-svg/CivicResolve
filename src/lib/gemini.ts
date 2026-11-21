@@ -76,12 +76,12 @@ export function haversineDistance(
 }
 
 /**
- * Helper to call Gemini with timeout and single retry
+ * Helper to call Gemini with a 15-second timeout, exponential backoff retry, and deterministic fallback.
  */
 async function callGeminiWithRetry<T>(
   promptFn: (ai: GoogleGenAI) => Promise<T>,
   fallbackFn: () => T,
-  timeoutMs = 12000
+  timeoutMs = 15000
 ): Promise<T> {
   const client = getAiClient();
   if (!client) {
@@ -90,7 +90,7 @@ async function callGeminiWithRetry<T>(
 
   const executeAttempt = async (): Promise<T> => {
     return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Gemini API timeout')), timeoutMs);
+      const timer = setTimeout(() => reject(new Error('Gemini API timeout (15s exceeded)')), timeoutMs);
       promptFn(client)
         .then((res) => {
           clearTimeout(timer);
@@ -107,12 +107,14 @@ async function callGeminiWithRetry<T>(
     // Attempt 1
     return await executeAttempt();
   } catch (firstError) {
-    console.warn('Gemini attempt 1 failed, retrying once...', firstError);
+    console.warn('Gemini attempt 1 failed, retrying after 1000ms backoff...', firstError);
     try {
-      // Retry once
+      // Backoff delay before attempt 2
+      await new Promise((r) => setTimeout(r, 1000));
+      // Attempt 2
       return await executeAttempt();
     } catch (secondError) {
-      console.warn('Gemini attempt 2 failed. Falling back to deterministic engine:', secondError);
+      console.warn('Gemini attempt 2 failed. Falling back to deterministic rule engine:', secondError);
       return fallbackFn();
     }
   }

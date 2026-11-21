@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { analyzeIssue, checkDuplicate } from '@/lib/gemini';
 import { batchTranslateIssues } from '@/lib/translation';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import fs from 'fs';
 import path from 'path';
 
@@ -129,6 +130,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rateCheck = checkRateLimit(ip, 'create-issue', 15, 60000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Submission rate limit reached. Please wait ${rateCheck.retryAfterSec} seconds before filing another grievance.`,
+        },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfterSec) } }
+      );
+    }
+
     const user = await getCurrentUser();
     const json = await request.json();
     const parsed = createIssueSchema.safeParse(json);

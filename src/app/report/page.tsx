@@ -632,8 +632,14 @@ export default function ReportPage() {
                       {translatePriority(analysisResult.priority)} PRIORITY
                     </span>
 
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 rounded">
-                      {analysisResult.isAiGenerated ? 'AI Triage Verified' : 'Rule-Based Fallback'}
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                        analysisResult.isAiGenerated
+                          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                          : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+                      }`}
+                    >
+                      {analysisResult.isAiGenerated ? 'AI analysed (Gemini)' : 'Basic rules (AI unavailable)'}
                     </span>
                   </div>
 

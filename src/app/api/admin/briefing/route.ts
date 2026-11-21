@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { summarizeBacklog } from '@/lib/gemini';
 import { getOrTranslateEntityFields } from '@/lib/translation';
+import crypto from 'crypto';
+
+interface CachedBriefing {
+  data: any;
+  hash: string;
+  cachedAt: number;
+}
+
+let cachedBriefing: CachedBriefing | null = null;
+const BRIEFING_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function GET(request: Request) {
   try {
@@ -34,21 +44,43 @@ export async function GET(request: Request) {
       isSlaBreached: Boolean(issue.slaDueAt && new Date(issue.slaDueAt) < now),
     }));
 
-    const briefing = await summarizeBacklog(issuesForAi);
+    // Cache key based on open issues state
+    const currentFingerprint = issuesForAi
+      .map((i) => `${i.id}:${i.status}:${i.priorityScore}`)
+      .join('|');
+    const stateHash = crypto.createHash('md5').update(currentFingerprint).digest('hex');
 
-    let finalBriefing = briefing;
+    let rawBriefing: any = null;
+    const nowMs = Date.now();
 
-    if (lang !== 'en' && briefing) {
+    if (
+      cachedBriefing &&
+      cachedBriefing.hash === stateHash &&
+      nowMs - cachedBriefing.cachedAt < BRIEFING_TTL_MS
+    ) {
+      rawBriefing = cachedBriefing.data;
+    } else {
+      rawBriefing = await summarizeBacklog(issuesForAi);
+      cachedBriefing = {
+        data: rawBriefing,
+        hash: stateHash,
+        cachedAt: nowMs,
+      };
+    }
+
+    let finalBriefing = rawBriefing;
+
+    if (lang !== 'en' && rawBriefing) {
       const payload: Record<string, string> = {
-        headline: briefing.headline,
+        headline: rawBriefing.headline,
       };
 
-      briefing.topClusters?.forEach((c, idx) => {
+      rawBriefing.topClusters?.forEach((c: any, idx: number) => {
         payload[`cluster_title_${idx}`] = c.title;
         payload[`cluster_desc_${idx}`] = c.description;
       });
 
-      briefing.suggestedWorkOrders?.forEach((wo, idx) => {
+      rawBriefing.suggestedWorkOrders?.forEach((wo: any, idx: number) => {
         payload[`wo_crew_${idx}`] = wo.crewTitle;
         payload[`wo_benefit_${idx}`] = wo.benefit;
       });
@@ -61,18 +93,18 @@ export async function GET(request: Request) {
       });
 
       finalBriefing = {
-        ...briefing,
-        headline: translated.headline || briefing.headline,
-        topClusters: briefing.topClusters?.map((c, idx) => ({
+        ...rawBriefing,
+        headline: translated.headline || rawBriefing.headline,
+        topClusters: rawBriefing.topClusters?.map((c: any, idx: number) => ({
           ...c,
           title: translated[`cluster_title_${idx}`] || c.title,
           description: translated[`cluster_desc_${idx}`] || c.description,
-        })) || [],
-        suggestedWorkOrders: briefing.suggestedWorkOrders?.map((wo, idx) => ({
+        })),
+        suggestedWorkOrders: rawBriefing.suggestedWorkOrders?.map((wo: any, idx: number) => ({
           ...wo,
           crewTitle: translated[`wo_crew_${idx}`] || wo.crewTitle,
           benefit: translated[`wo_benefit_${idx}`] || wo.benefit,
-        })) || [],
+        })),
       };
     }
 
@@ -80,10 +112,10 @@ export async function GET(request: Request) {
       success: true,
       briefing: finalBriefing,
       openCount: openIssues.length,
+      cached: cachedBriefing ? cachedBriefing.hash === stateHash : false,
     });
   } catch (error) {
     console.error('Admin briefing error:', error);
-    return NextResponse.json({ error: 'Failed to generate operational briefing' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate briefing' }, { status: 500 });
   }
 }
-

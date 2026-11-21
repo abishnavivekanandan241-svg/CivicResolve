@@ -375,6 +375,15 @@ function IssueDetailContent() {
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 {t('officialSummary')}
               </h2>
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                  issue.isAiAnalyzed
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                    : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+                }`}
+              >
+                {issue.isAiAnalyzed ? 'AI analysed (Gemini)' : 'Basic rules (AI unavailable)'}
+              </span>
             </div>
 
             <div className="space-y-1">

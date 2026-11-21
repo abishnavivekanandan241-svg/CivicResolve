@@ -643,6 +643,15 @@ export default function AdminPage() {
                   >
                     Score {selectedIssue.priorityScore}
                   </span>
+                  <span
+                    className={`text-[9px] font-semibold px-2 py-0.5 rounded border ${
+                      selectedIssue.isAiAnalyzed !== false
+                        ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                        : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800'
+                    }`}
+                  >
+                    {selectedIssue.isAiAnalyzed !== false ? 'AI analysed (Gemini)' : 'Basic rules (AI unavailable)'}
+                  </span>
                 </div>
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white mt-1 line-clamp-1">
                   {selectedIssue.title}
