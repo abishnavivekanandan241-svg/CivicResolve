@@ -938,14 +938,25 @@ const I18nContext = createContext<I18nContextType>({
   formatNumber: (n: any) => String(n ?? ''),
 });
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<SupportedLanguage>('en');
+export function I18nProvider({
+  children,
+  initialLang = 'en',
+}: {
+  children: React.ReactNode;
+  initialLang?: SupportedLanguage;
+}) {
+  const [language, setLanguageState] = useState<SupportedLanguage>(initialLang);
   const [adminLangMode, setAdminLangModeState] = useState<'en' | 'preferred'>('en');
 
   useEffect(() => {
-    const savedLang = (localStorage.getItem('civicresolve_lang') || 'en') as SupportedLanguage;
-    if (savedLang && translations[savedLang]) {
-      setLanguageState(savedLang);
+    let savedLang: string | null = null;
+    try {
+      const match = document.cookie.match(/(^|;)\s*civic_lang\s*=\s*([^;]+)/);
+      savedLang = match ? decodeURIComponent(match[2].trim()) : localStorage.getItem('civicresolve_lang');
+    } catch {}
+
+    if (savedLang && translations[savedLang as SupportedLanguage]) {
+      setLanguageState(savedLang as SupportedLanguage);
     }
     const savedAdminMode = localStorage.getItem('civicresolve_admin_lang_mode') as 'en' | 'preferred';
     if (savedAdminMode) {

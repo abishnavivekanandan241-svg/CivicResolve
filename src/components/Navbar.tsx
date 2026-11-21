@@ -137,7 +137,7 @@ export function Navbar() {
               }`}
           >
             <PlusCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-            <span>{t('reportIssueBtn')}</span>
+            <span suppressHydrationWarning>{t('reportIssueBtn')}</span>
           </Link>
 
           <Link
@@ -148,7 +148,7 @@ export function Navbar() {
               }`}
           >
             <FileText className="w-4 h-4" />
-            <span>{t('myIssuesBtn')}</span>
+            <span suppressHydrationWarning>{t('myIssuesBtn')}</span>
           </Link>
 
           <Link
@@ -159,7 +159,7 @@ export function Navbar() {
               }`}
           >
             <MapPin className="w-4 h-4" />
-            <span>{t('transparencyMapBtn')}</span>
+            <span suppressHydrationWarning>{t('transparencyMapBtn')}</span>
           </Link>
 
           <Link
@@ -170,7 +170,7 @@ export function Navbar() {
               }`}
           >
             <LayoutDashboard className="w-4 h-4" />
-            <span>{t('adminDashboardBtn')}</span>
+            <span suppressHydrationWarning>{t('adminDashboardBtn')}</span>
           </Link>
         </nav>
 
@@ -184,7 +184,7 @@ export function Navbar() {
               title="Change Interface Language"
             >
               <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-              <span>{currentLangObj.nativeName}</span>
+              <span suppressHydrationWarning>{currentLangObj.nativeName}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
@@ -224,7 +224,7 @@ export function Navbar() {
             title="Toggle between Citizen and Municipal Admin persona"
           >
             <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>
+            <span suppressHydrationWarning>
               {isRoleSwitching
                 ? '...'
                 : currentUser?.role === 'ADMIN'
