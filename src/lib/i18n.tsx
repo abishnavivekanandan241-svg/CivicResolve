@@ -920,7 +920,7 @@ interface I18nContextType {
   translateStatus: (status: string) => string;
   translatePriority: (priority: string) => string;
   formatDate: (date: string | Date | null | undefined) => string;
-  formatNumber: (num: number) => string;
+  formatNumber: (num: number | string | null | undefined) => string;
 }
 
 const I18nContext = createContext<I18nContextType>({
@@ -935,7 +935,7 @@ const I18nContext = createContext<I18nContextType>({
   translateStatus: (st: string) => st,
   translatePriority: (pr: string) => pr,
   formatDate: () => '',
-  formatNumber: (n: number) => String(n),
+  formatNumber: (n: any) => String(n ?? ''),
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -1020,7 +1020,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }).format(d);
   };
 
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num: number | string | null | undefined): string => {
+    if (num === null || num === undefined) return '';
+    const n = typeof num === 'string' ? parseFloat(num) : num;
+    if (isNaN(n)) return String(num);
+
     const localeMap: Record<SupportedLanguage, string> = {
       en: 'en-IN',
       hi: 'hi-IN',
@@ -1034,7 +1038,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       pa: 'pa-IN',
       ur: 'ur-PK',
     };
-    return new Intl.NumberFormat(localeMap[language] || 'en-IN').format(num);
+    return new Intl.NumberFormat(localeMap[language] || 'en-IN').format(n);
   };
 
   return (
